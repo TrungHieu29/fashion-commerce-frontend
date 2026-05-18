@@ -10,11 +10,12 @@ import {
 import { useLogin } from '../hooks/use-login';
 
 export const LoginForm = () => {
-    const { mutate } = useLogin();
+    const { mutate, isPending, error: serverError } = useLogin();
 
     const {
         register,
         handleSubmit,
+        formState: { errors },
     } = useForm<LoginSchemaType>({
         resolver: zodResolver(loginSchema),
     });
@@ -25,12 +26,14 @@ export const LoginForm = () => {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
+            {serverError && <p style={{ color: 'red' }}>Đăng nhập thất bại!</p>}
             <div>
                 <input
                     type="text"
                     placeholder="Username"
                     {...register('username')}
                 />
+                {errors.username && <p>{errors.username.message}</p>}
             </div>
 
             <div>
@@ -39,10 +42,11 @@ export const LoginForm = () => {
                     placeholder="Password"
                     {...register('password')}
                 />
+                {errors.password && <p>{errors.password.message}</p>}
             </div>
 
-            <button type="submit">
-                Login
+            <button type="submit" disabled={isPending}>
+                {isPending ? 'Loading...' : 'Login'}
             </button>
         </form>
     );
