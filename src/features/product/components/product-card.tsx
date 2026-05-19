@@ -27,9 +27,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     <span className="text-xl font-bold text-blue-600">{product.price.toLocaleString()}đ</span>
                     <span className="flex items-center gap-1 text-sm font-medium text-amber-500">{product.rating} ⭐</span>
                 </div>
-                <button className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 active:scale-[0.98]">
-                    Thêm vào giỏ hàng
-                </button>
+                <Link to={`/product/${product.id}`}>
+                    <button className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:scale-[0.98]">
+                        Xem chi tiết
+                    </button>
+                </Link>
             </div>
         </div>
     );

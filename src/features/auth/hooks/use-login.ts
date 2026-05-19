@@ -7,15 +7,20 @@ import { useAuthStore } from '@/stores/auth.store';
 
 export const useLogin = () => {
     const navigate = useNavigate();
-    const setToken = useAuthStore(
-        (state) => state.setToken
-    );
+    const setAuth = useAuthStore((state) => state.setAuth);
 
     return useMutation({
         mutationFn: loginApi,
 
         onSuccess: (data) => {
-            setToken(data.accessToken);
+            setAuth(
+                {
+                    id: data.user.id,
+                    username: data.user.username,
+                    roles: [data.user.roleName], // Chuyển roleName thành mảng để khớp với Store
+                },
+                data.accessToken
+            );
             navigate('/');
         },
     });

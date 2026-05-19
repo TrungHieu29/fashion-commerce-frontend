@@ -8,11 +8,14 @@ import ProductsPage from '@/features/product/pages/products-page.tsx';
 
 import ProductDetailPage from '@/features/product-variant/pages/product-detail-page';
 
+
+
 import MainLayout from '@/layouts/main-layout';
 
 import AuthLayout from '@/layouts/auth-layout';
 
 import { ProtectedRoute } from '@/routes/protected-route';
+import CartPage from '@/features/cart/pages/cart-page';
 
 export const router = createBrowserRouter([
 
@@ -36,6 +39,15 @@ export const router = createBrowserRouter([
             {
                 path: '/',
                 element: <ProductsPage />,
+            },
+
+            {
+                path: '/cart',
+                element: (
+                    <ProtectedRoute>
+                        <CartPage />
+                    </ProtectedRoute>
+                ),
             },
 
             {

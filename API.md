@@ -37,7 +37,8 @@ email   String  @Email, @NotBlank   Email
 fullName    String  Optional    Họ tên
 AuthResponseDto
 Field   Type    Mô tả
-token   String  JWT Token
+id      Long    ID người dùng
+accessToken   String  JWT Token
 type    String  Bearer
 username    String  Username
 roles   List<String>    Danh sách role
@@ -334,4 +335,3 @@ Authorization: Bearer <JWT_TOKEN>
 JWT Token được trả về sau khi đăng nhập thành công thông qua API:
 
 POST /api/auth/authenticate
-

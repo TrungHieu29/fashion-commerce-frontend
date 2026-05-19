@@ -4,11 +4,15 @@ import { ChevronLeft, Star, ShoppingCart, ShieldCheck } from 'lucide-react';
 import { useProductDetail } from '../hooks/use-variant';
 import { useAuthStore } from '@/stores/auth.store';
 
+import { toast } from 'sonner';
+import { useAddToCart } from '@/features/cart/hooks/use-cart';
+
 const ProductDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const { data: product, isLoading, isError } = useProductDetail(id);
+    const { mutate: addToCart, isPending: isAdding } = useAddToCart();
 
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -37,19 +41,23 @@ const ProductDetailPage = () => {
     const currentPrice = product.price + (selectedVariant?.priceAdjustment || 0);
 
     const handleAddToCart = () => {
-        // Yêu cầu 1: Khách vãng lai bấm vào chức năng thì yêu cầu Login
-        alert('Tính năng giỏ hàng sẽ được cập nhật sau!');
+        // 1. Kiểm tra chọn biến thể trước (UX tốt hơn cho cả khách vãng lai)
+        if (product.variants && product.variants.length > 0 && !selectedVariant) {
+            toast.warning('Vui lòng chọn đầy đủ Size và Màu sắc!');
+            return;
+        }
+
+        // 2. Kiểm tra đăng nhập sau khi đã chọn xong sản phẩm
         if (!isAuthenticated) {
-            navigate('/login');
+            toast.error('Vui lòng đăng nhập để mua sắm!');
+            navigate('/login'); // Chuyển hướng sau khi hiển thị toast
             return;
         }
 
-        if (!selectedVariant) {
-            alert('Vui lòng chọn đầy đủ Size và Màu sắc!');
-            return;
-        }
-
-        alert(`Đã thêm vào giỏ: ${product.productName} (${selectedSize} - ${selectedColor})`);
+        addToCart({
+            productVariantId: selectedVariant?.id || 0,
+            quantity: quantity
+        });
     };
 
     const toggleSize = (size: string) => {
@@ -159,10 +167,11 @@ const ProductDetailPage = () => {
 
                         <button
                             onClick={handleAddToCart}
-                            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 text-lg font-bold text-white transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-50"
+                            disabled={isAdding}
+                            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 text-lg font-bold text-white transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-70"
                         >
                             <ShoppingCart size={20} />
-                            Thêm vào giỏ hàng
+                            {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
                         </button>
                     </div>
 

@@ -12,7 +12,13 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
     accessToken: string;
-    type: string;
-    username: string;
-    roles: string[];
+    refreshToken: string;
+    user: {
+        id: number;
+        username: string;
+        fullName: string;
+        email: string;
+        roleName: string;
+        [key: string]: any; // Cho phép các trường mở rộng khác
+    };
 }
