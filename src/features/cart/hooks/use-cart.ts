@@ -68,7 +68,7 @@ export const useUpdateCartItemVariant = () => {
             updateCartItemVariant(user!.id, itemId, { productVariantId }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cart', user?.id] });
-            toast.success('Đã cập nhật biến thể sản phẩm'); // Đã có, giữ nguyên
+            toast.success('Đã cập nhật sản phẩm'); // Đã có, giữ nguyên
         },
         onError: (error) => {
             toast.error(`Lỗi cập nhật biến thể: ${error.message}`);

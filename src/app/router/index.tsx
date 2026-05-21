@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import LoginPage from '@/features/auth/pages/login-page';
 
-import ProfilePage from '@/pages/profile-page';
+import ProfilePage from '@/features/user/pages/profile-page';
 
 import ProductsPage from '@/features/product/pages/products-page.tsx';
 
