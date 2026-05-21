@@ -1,337 +1,596 @@
 Fashion Commerce API Documentation
 Tổng quan
 
-Hệ thống API cho nền tảng thương mại điện tử thời trang, được xây dựng theo kiến trúc RESTful API và tài liệu hóa bằng OpenAPI 3.0.
+Tài liệu REST API cho hệ thống thương mại điện tử thời trang được xây dựng bằng Spring Boot và OpenAPI 3.0.
 
 Base URL: http://localhost:8080
-Swagger Docs: /v3/api-docs
-API Format: JSON
-Authentication: JWT Bearer Token
-1. Authentication & User Module
-Authentication APIs
-Method  Endpoint    Mô tả
-POST    /api/auth/register  Đăng ký tài khoản
-POST    /api/auth/authenticate  Đăng nhập hệ thống
-User APIs
-Method  Endpoint    Mô tả
-GET /api/users  Lấy danh sách người dùng
-GET /api/users/{id} Lấy thông tin user theo ID
-GET /api/users/username/{username}  Tìm user theo username
-PUT /api/users/{id} Cập nhật thông tin user
-DELETE  /api/users/{id} Xóa user
-Role APIs
-Method  Endpoint    Mô tả
-GET /api/roles  Lấy danh sách role
-GET /api/roles/{id} Lấy role theo ID
-GET /api/roles/name/{name}  Tìm role theo tên
-DTO Schemas
-AuthRequestDto (Login)
-Field   Type    Validation  Mô tả
-username    String  @NotBlank   Tên đăng nhập
-password    String  @NotBlank   Mật khẩu
-RegisterRequestDto
-Field   Type    Validation  Mô tả
-username    String  @NotBlank   Tên đăng nhập
-password    String  @NotBlank, @Size(min = 6)   Mật khẩu
-email   String  @Email, @NotBlank   Email
-fullName    String  Optional    Họ tên
-AuthResponseDto
-Field   Type    Mô tả
-id      Long    ID người dùng
-accessToken   String  JWT Token
-type    String  Bearer
-username    String  Username
-roles   List<String>    Danh sách role
-UserRequestDto
-Field   Type    Validation  Mô tả
-fullName    String  Optional    Họ tên
-phone   String  Optional    Số điện thoại
-email   String  @Email  Email
-gender  String  Optional    Giới tính
-dateOfBirth LocalDate   Optional    Ngày sinh
-avatar  String  Optional    URL avatar
-UserResponseDto
-Field   Type    Mô tả
-id  Long    ID người dùng
-username    String  Username
-email   String  Email
-fullName    String  Họ tên
-phone   String  Số điện thoại
-roleName    String  Tên role
-2. Shop Module
-Shop APIs
-Method  Endpoint    Mô tả
-GET /api/shops  Lấy danh sách shop
-GET /api/shops/{id} Lấy thông tin shop
-GET /api/shops/owner/{ownerId}  Lấy shop theo owner
-POST    /api/shops  Tạo shop
-PUT /api/shops/{id} Cập nhật shop
-DELETE  /api/shops/{id} Xóa shop
-DTO Schemas
-ShopRequestDto
-Field   Type    Validation  Mô tả
-ownerId Long    @NotNull    ID chủ shop
-shopName    String  @NotBlank   Tên shop
-description String  Optional    Mô tả shop
-ShopResponseDto
-Field   Type    Mô tả
-id  Long    ID shop
-ownerId Long    ID chủ shop
-shopName    String  Tên shop
-description String  Mô tả
-createdAt   LocalDateTime   Ngày tạo
-3. Product & Variant Module
-Product APIs
-Method  Endpoint    Mô tả
-GET /api/products   Lấy danh sách sản phẩm
-GET /api/products/{id}  Lấy sản phẩm theo ID
-GET /api/products/search    Tìm kiếm sản phẩm
-GET /api/products/shop/{shopId} Lấy sản phẩm theo shop
-GET /api/products/category/{categoryId} Lấy sản phẩm theo category
-GET /api/products/brand/{brandId}   Lấy sản phẩm theo brand
-POST    /api/products   Tạo sản phẩm
-PUT /api/products/{id}  Cập nhật sản phẩm
-DELETE  /api/products/{id}  Xóa sản phẩm
-Product Variant APIs
-Method  Endpoint    Mô tả
-GET /api/product-variants   Lấy danh sách variant
-GET /api/product-variants/{id}  Lấy variant theo ID
-GET /api/product-variants/product/{productId}   Lấy variant theo product
-POST    /api/product-variants   Tạo variant
-PUT /api/product-variants/{id}  Cập nhật variant
-DELETE  /api/product-variants/{id}  Xóa variant
-DTO Schemas
-ProductRequestDto
-Field   Type    Validation  Mô tả
-productName String  @NotBlank   Tên sản phẩm
-productDetail   String  Optional    Mô tả
-price   BigDecimal  @NotNull, @DecimalMin("0")  Giá
-status  String  Optional    ACTIVE / INACTIVE
-shopId  Long    @NotNull    ID shop
-categoryId  Long    @NotNull    ID category
-brandId Long    @NotNull    ID brand
-ProductResponseDto
-Field   Type    Mô tả
-id  Long    ID sản phẩm
-productName String  Tên sản phẩm
-productDetail   String  Mô tả
-price   BigDecimal  Giá
-status  String  Trạng thái
-rating  Double  Đánh giá trung bình
-shopId  Long    ID shop
-categoryId  Long    ID category
-brandId Long    ID brand
-createdAt   LocalDateTime   Ngày tạo
-ProductVariantRequestDto
-Field   Type    Validation  Mô tả
-productId   Long    @NotNull    ID sản phẩm
-sku String  @NotBlank   SKU
-color   String  Optional    Màu sắc
-size    String  Optional    Kích thước
-stock   Integer @Min(0) Tồn kho
-price   BigDecimal  Optional    Giá riêng
-ProductVariantResponseDto
-Field   Type    Mô tả
-id  Long    ID variant
-productId   Long    ID sản phẩm
-sku String  SKU
-color   String  Màu
-size    String  Size
-stock   Integer Tồn kho
-price   BigDecimal  Giá
-4. Cart Module
-Cart APIs
-Method  Endpoint    Mô tả
-GET /api/carts/user/{userId}    Lấy giỏ hàng
-POST    /api/carts/user/{userId}/items  Thêm sản phẩm
-PUT /api/carts/user/{userId}/items/{cartItemId} Cập nhật item
-DELETE  /api/carts/user/{userId}/items/{cartItemId} Xóa item
-DELETE  /api/carts/user/{userId}    Xóa toàn bộ giỏ hàng
-DTO Schemas
-CartItemRequestDto
-Field   Type    Validation  Mô tả
-productVariantId    Long    @NotNull    ID variant
-quantity    Integer @Min(1) Số lượng
-CartItemResponseDto
-Field   Type    Mô tả
-id  Long    ID cart item
-productVariantId    Long    ID variant
-productName String  Tên sản phẩm
-sku String  SKU
-quantity    Integer Số lượng
-price   BigDecimal  Giá
-totalPrice  BigDecimal  Tổng tiền
-CartResponseDto
-Field   Type    Mô tả
-id  Long    ID cart
-userId  Long    ID user
-items   List<CartItemResponseDto>   Danh sách sản phẩm
-totalAmount BigDecimal  Tổng tiền
-5. Shipping Module
-Shipping Address APIs
-Method  Endpoint    Mô tả
-GET /api/shipping-addresses Lấy danh sách địa chỉ
-GET /api/shipping-addresses/{id}    Lấy địa chỉ
-GET /api/shipping-addresses/user/{userId}   Lấy địa chỉ theo user
-POST    /api/shipping-addresses Tạo địa chỉ
-PUT /api/shipping-addresses/{id}    Cập nhật địa chỉ
-PUT /api/shipping-addresses/{id}/set-default    Đặt mặc định
-DELETE  /api/shipping-addresses/{id}    Xóa địa chỉ
-DTO Schemas
-ShippingAddressRequestDto
-Field   Type    Validation  Mô tả
-userId  Long    @NotNull    ID user
-receiverName    String  @NotBlank   Người nhận
-phone   String  @NotBlank   Số điện thoại
-addressLine String  @NotBlank   Địa chỉ
-city    String  @NotBlank   Thành phố
-district    String  @NotBlank   Quận/Huyện
-isDefault   Boolean Optional    Địa chỉ mặc định
-ShippingAddressResponseDto
-Field   Type    Mô tả
-id  Long    ID địa chỉ
-userId  Long    ID user
-receiverName    String  Người nhận
-phone   String  SĐT
-addressLine String  Địa chỉ
-city    String  Thành phố
-district    String  Quận/Huyện
-isDefault   Boolean Mặc định
-6. Order Module
-Order APIs
-Method  Endpoint    Mô tả
-GET /api/orders Lấy danh sách đơn
-GET /api/orders/{id}    Lấy đơn theo ID
-GET /api/orders/user/{userId}   Lấy đơn theo user
-POST    /api/orders Tạo đơn hàng
-PUT /api/orders/{orderId}/status    Cập nhật trạng thái
-DELETE  /api/orders/{orderId}   Hủy/Xóa đơn
-DTO Schemas
-OrderRequestDto
-Field   Type    Validation  Mô tả
-userId  Long    @NotNull    ID user
-addressId   Long    Optional    Địa chỉ có sẵn
-receiverName    String  Optional    Người nhận mới
-phone   String  Optional    SĐT
-addressLine String  Optional    Địa chỉ
-city    String  Optional    Thành phố
-district    String  Optional    Quận/Huyện
-OrderResponseDto
-Field   Type    Mô tả
-id  Long    ID đơn
-orderCode   String  Mã đơn
-totalPrice  BigDecimal  Tổng tiền
-finalPrice  BigDecimal  Giá cuối
-status  String  Trạng thái
-createdAt   LocalDateTime   Ngày tạo
-items   List<OrderItemResponseDto>  Danh sách item
-OrderItemResponseDto
-Field   Type    Mô tả
-id  Long    ID item
-productVariantId    Long    ID variant
-productName String  Tên sản phẩm
-quantity    Integer Số lượng
-price   BigDecimal  Giá
-7. Category & Brand Module
-Category APIs
-Method  Endpoint    Mô tả
-GET /api/categories Lấy danh sách category
-GET /api/categories/{id}    Lấy category
-POST    /api/categories Tạo category
-PUT /api/categories/{id}    Cập nhật category
-DELETE  /api/categories/{id}    Xóa category
-Product Brand APIs
-Method  Endpoint    Mô tả
-GET /api/product-brands Lấy danh sách brand
-GET /api/product-brands/{id}    Lấy brand
-POST    /api/product-brands Tạo brand
-PUT /api/product-brands/{id}    Cập nhật brand
-DELETE  /api/product-brands/{id}    Xóa brand
-DTO Schemas
-CategoryRequestDto
-Field   Type    Validation  Mô tả
-name    String  @NotBlank   Tên category
-description String  Optional    Mô tả
-parentId    Long    Optional    Category cha
-CategoryResponseDto
-Field   Type    Mô tả
-id  Long    ID category
-name    String  Tên category
-description String  Mô tả
-parentId    Long    ID category cha
-ProductBrandRequestDto
-Field   Type    Validation  Mô tả
-name    String  @NotBlank   Tên brand
-description String  Optional    Mô tả
-ProductBrandResponseDto
-Field   Type    Mô tả
-id  Long    ID brand
-name    String  Tên brand
-description String  Mô tả
-8. Review Module
-Review APIs
-Method  Endpoint    Mô tả
-GET /api/reviews/{id}   Lấy review
-GET /api/reviews/users/{userId} Review theo user
-GET /api/reviews/products/{productId}   Review theo sản phẩm
-POST    /api/reviews    Tạo review
-PUT /api/reviews/{id}   Cập nhật review
-DELETE  /api/reviews/{id}   Xóa review
-9. Payment Module
-Payment APIs
-Method  Endpoint    Mô tả
-GET /api/payments/{id}  Lấy payment
-GET /api/payments/orders/{orderId}  Payment theo order
-POST    /api/payments/orders/{orderId}  Thanh toán
-PUT /api/payments/{id}/status   Cập nhật trạng thái
-10. Conversation & Message Module
-Conversation APIs
-Method  Endpoint    Mô tả
-GET /api/conversations  Danh sách conversation
-GET /api/conversations/{id} Chi tiết conversation
-GET /api/conversations/users/{userId}   Conversation theo user
-GET /api/conversations/shops/{shopId}   Conversation theo shop
-POST    /api/conversations  Tạo conversation
-Message APIs
-Method  Endpoint    Mô tả
-GET /api/messages/conversations/{conversationId}    Danh sách tin nhắn
-POST    /api/messages   Gửi tin nhắn
-PUT /api/messages/conversations/{conversationId}/read   Đánh dấu đã đọc
-Validation Rules
-Request Validation
-
-Các trường sử dụng annotation validation như:
-
-@NotNull
-@NotBlank
-@Size
-@Email
-@Min
-@DecimalMin
-
-đều yêu cầu dữ liệu hợp lệ trước khi request được xử lý tại Controller.
-
-Validation được kích hoạt thông qua annotation @Valid.
-
-Pagination Response
-
-Một số API sử dụng phân trang với các schema:
-
-Pageable
-PageableObject
-SortObject
-PageProductResponseDto
-PageOrderResponseDto
-PageReviewResponseDto
-PageConversationResponseDto
-PageDiscountResponseDto
-PageMessageResponseDto
+Swagger UI: http://localhost:8080/swagger-ui/index.html
+OpenAPI JSON: http://localhost:8080/v3/api-docs
 Authentication
-
-Các API yêu cầu xác thực sẽ sử dụng:
-
-Authorization: Bearer <JWT_TOKEN>
-
-JWT Token được trả về sau khi đăng nhập thành công thông qua API:
-
+Auth Controller
+Đăng ký tài khoản
+POST /api/auth/register
+Đăng nhập
 POST /api/auth/authenticate
+
+Response:
+
+{
+  "accessToken": "jwt_token",
+  "refreshToken": "refresh_token",
+  "user": {
+    "id": 1,
+    "username": "admin"
+  }
+}
+User Management
+User Controller
+Lấy danh sách người dùng
+GET /api/users
+Lấy người dùng theo ID
+GET /api/users/{id}
+Lấy người dùng theo username
+GET /api/users/username/{username}
+Cập nhật người dùng
+PUT /api/users/{id}
+Xóa người dùng
+DELETE /api/users/{id}
+Product Management
+Product Controller
+Lấy danh sách sản phẩm
+GET /api/products
+Tìm kiếm sản phẩm
+GET /api/products/search
+Lấy sản phẩm theo ID
+GET /api/products/{id}
+Lấy sản phẩm theo shop
+GET /api/products/shop/{shopId}
+Lấy sản phẩm theo danh mục
+GET /api/products/category/{categoryId}
+Lấy sản phẩm theo thương hiệu
+GET /api/products/brand/{brandId}
+Tạo sản phẩm
+POST /api/products
+Cập nhật sản phẩm
+PUT /api/products/{id}
+Xóa sản phẩm
+DELETE /api/products/{id}
+Product Variant Management
+Product Variant Controller
+Lấy danh sách biến thể
+GET /api/product-variants
+Lấy biến thể theo ID
+GET /api/product-variants/{id}
+Lấy biến thể theo sản phẩm
+GET /api/product-variants/product/{productId}
+Tạo biến thể
+POST /api/product-variants
+Cập nhật biến thể
+PUT /api/product-variants/{id}
+Xóa biến thể
+DELETE /api/product-variants/{id}
+Brand Management
+Product Brand Controller
+Lấy danh sách thương hiệu
+GET /api/product-brands
+Lấy thương hiệu theo ID
+GET /api/product-brands/{id}
+Tạo thương hiệu
+POST /api/product-brands
+Cập nhật thương hiệu
+PUT /api/product-brands/{id}
+Xóa thương hiệu
+DELETE /api/product-brands/{id}
+Category Management
+Category Controller
+Lấy danh sách danh mục
+GET /api/categories
+Lấy danh mục theo ID
+GET /api/categories/{id}
+Tạo danh mục
+POST /api/categories
+Cập nhật danh mục
+PUT /api/categories/{id}
+Xóa danh mục
+DELETE /api/categories/{id}
+Cart Management
+Cart Controller
+Lấy giỏ hàng của user
+GET /api/carts/user/{userId}
+Thêm sản phẩm vào giỏ hàng
+POST /api/carts/user/{userId}/items
+
+Body:
+
+{
+  "productVariantId": 1,
+  "quantity": 2
+}
+Cập nhật số lượng sản phẩm
+PUT /api/carts/user/{userId}/items/{cartItemId}
+
+Body:
+
+{
+  "quantity": 3
+}
+Đổi variant sản phẩm
+PUT /api/carts/user/{userId}/items/{cartItemId}/variant
+
+Body:
+
+{
+  "productVariantId": 5
+}
+Xóa sản phẩm khỏi giỏ hàng
+DELETE /api/carts/user/{userId}/items/{cartItemId}
+Xóa toàn bộ giỏ hàng
+DELETE /api/carts/user/{userId}
+Order Management
+Order Controller
+Tạo đơn hàng
+POST /api/orders
+Lấy danh sách đơn hàng
+GET /api/orders
+Lấy đơn hàng theo ID
+GET /api/orders/{id}
+Lấy đơn hàng theo user
+GET /api/orders/user/{userId}
+Cập nhật trạng thái đơn hàng
+PUT /api/orders/{orderId}/status
+Xóa đơn hàng
+DELETE /api/orders/{orderId}
+Payment Management
+Payment Controller
+Thanh toán đơn hàng
+POST /api/payments/orders/{orderId}
+Lấy thanh toán theo đơn hàng
+GET /api/payments/orders/{orderId}
+Lấy thanh toán theo ID
+GET /api/payments/{id}
+Cập nhật trạng thái thanh toán
+PUT /api/payments/{id}/status
+Shipping Address Management
+Shipping Address Controller
+Lấy danh sách địa chỉ của user
+GET /api/shipping-addresses/user/{userId}
+Thêm địa chỉ giao hàng
+POST /api/shipping-addresses
+Cập nhật địa chỉ giao hàng
+PUT /api/shipping-addresses/{id}
+Đặt địa chỉ mặc định
+PUT /api/shipping-addresses/{id}/set-default
+Xóa địa chỉ giao hàng
+DELETE /api/shipping-addresses/{id}
+Shop Management
+Shop Controller
+Lấy danh sách shop
+GET /api/shops
+Lấy shop theo ID
+GET /api/shops/{id}
+Lấy shop theo owner
+GET /api/shops/owner/{ownerId}
+Tạo shop
+POST /api/shops
+Cập nhật shop
+PUT /api/shops/{id}
+Xóa shop
+DELETE /api/shops/{id}
+Review Management
+Review Controller
+Tạo đánh giá sản phẩm
+POST /api/reviews
+Lấy đánh giá theo sản phẩm
+GET /api/reviews/products/{productId}
+Lấy đánh giá theo user
+GET /api/reviews/users/{userId}
+Cập nhật đánh giá
+PUT /api/reviews/{id}
+Xóa đánh giá
+DELETE /api/reviews/{id}
+Conversation Management
+Conversation Controller
+Tạo cuộc trò chuyện
+POST /api/conversations
+Lấy danh sách cuộc trò chuyện
+GET /api/conversations
+Lấy cuộc trò chuyện theo ID
+GET /api/conversations/{id}
+Lấy cuộc trò chuyện theo user
+GET /api/conversations/users/{userId}
+Lấy cuộc trò chuyện theo shop
+GET /api/conversations/shops/{shopId}
+Message Management
+Message Controller
+Gửi tin nhắn
+POST /api/messages
+Lấy tin nhắn theo conversation
+GET /api/messages/conversations/{conversationId}
+Đánh dấu đã đọc
+PUT /api/messages/conversations/{conversationId}/read
+Discount Management
+Discount Controller
+Tạo mã giảm giá
+POST /api/discounts
+Lấy mã giảm giá theo shop
+GET /api/discounts/shops/{shopId}
+Lấy mã giảm giá đang hoạt động
+GET /api/discounts/shops/{shopId}/active
+Cập nhật mã giảm giá
+PUT /api/discounts/{id}
+Xóa mã giảm giá
+DELETE /api/discounts/{id}
+Role Management
+Role Controller
+Lấy tất cả role
+GET /api/roles
+Lấy role theo ID
+GET /api/roles/{id}
+Lấy role theo tên
+GET /api/roles/name/{name}
+
+
+
+DTO Models Documentation
+User DTO
+UserRequestDto
+{
+  "username": "trunghieu",
+  "password": "123456",
+  "fullName": "Nguyen Trung Hieu",
+  "email": "hieu@gmail.com",
+  "phone": "0123456789",
+  "gender": "Male",
+  "dateOfBirth": "2004-01-01",
+  "avatar": "https://example.com/avatar.jpg"
+}
+Field	Type	Required	Description
+username	String	Yes	Tên đăng nhập
+password	String	Yes	Mật khẩu
+fullName	String	Yes	Họ và tên
+email	String	No	Email
+phone	String	No	Số điện thoại
+gender	String	No	Giới tính
+dateOfBirth	LocalDate	No	Ngày sinh
+avatar	String	No	URL ảnh đại diện
+UserResponseDto
+{
+  "id": 1,
+  "username": "trunghieu",
+  "fullName": "Nguyen Trung Hieu",
+  "phone": "0123456789",
+  "status": "ACTIVE",
+  "email": "hieu@gmail.com",
+  "avatar": "https://example.com/avatar.jpg",
+  "gender": "Male",
+  "dateOfBirth": "2004-01-01",
+  "createdAt": "2026-05-21T10:00:00",
+  "roleName": "CUSTOMER"
+}
+Authentication DTO
+AuthResponse
+{
+  "accessToken": "jwt_access_token",
+  "refreshToken": "jwt_refresh_token",
+  "user": {
+    "id": 1,
+    "username": "trunghieu",
+    "fullName": "Nguyen Trung Hieu"
+  }
+}
+Field	Type	Description
+accessToken	String	JWT access token
+refreshToken	String	JWT refresh token
+user	UserResponseDto	Thông tin người dùng
+Shop DTO
+ShopRequestDto
+{
+  "shopName": "Hieu Fashion",
+  "logo": "https://example.com/logo.jpg",
+  "phone": "0987654321",
+  "address": "Ha Noi",
+  "email": "shop@gmail.com",
+  "ownerId": 1
+}
+ShopResponseDto
+{
+  "id": 1,
+  "shopName": "Hieu Fashion",
+  "logo": "https://example.com/logo.jpg",
+  "phone": "0987654321",
+  "status": "ACTIVE",
+  "address": "Ha Noi",
+  "email": "shop@gmail.com",
+  "createdAt": "2026-05-21T10:00:00",
+  "ownerId": 1,
+  "ownerFullName": "Nguyen Trung Hieu"
+}
+Category DTO
+CategoryRequestDto
+{
+  "name": "Áo Thun"
+}
+CategoryResponseDto
+{
+  "id": 1,
+  "name": "Áo Thun"
+}
+Product Brand DTO
+ProductBrandRequestDto
+{
+  "name": "Nike",
+  "description": "Thương hiệu thời trang thể thao"
+}
+ProductBrandResponseDto
+{
+  "id": 1,
+  "name": "Nike",
+  "description": "Thương hiệu thời trang thể thao"
+}
+Product DTO
+ProductRequestDto
+{
+  "productName": "Áo Hoodie",
+  "productDetail": "Áo hoodie form rộng",
+  "price": 350000,
+  "shopId": 1,
+  "brandId": 1,
+  "categoryId": 1
+}
+Field	Type	Required	Description
+productName	String	Yes	Tên sản phẩm
+productDetail	String	No	Mô tả sản phẩm
+price	BigDecimal	Yes	Giá sản phẩm
+shopId	Long	Yes	ID shop
+brandId	Long	Yes	ID thương hiệu
+categoryId	Long	Yes	ID danh mục
+ProductResponseDto
+{
+  "id": 1,
+  "productName": "Áo Hoodie",
+  "productDetail": "Áo hoodie form rộng",
+  "rating": 4.8,
+  "status": "ACTIVE",
+  "price": 350000,
+  "shopId": 1,
+  "shopName": "Hieu Fashion",
+  "brandId": 1,
+  "brandName": "Nike",
+  "categoryId": 1,
+  "categoryName": "Áo"
+}
+Product Variant DTO
+ProductVariantRequestDto
+{
+  "productId": 1,
+  "size": "L",
+  "color": "Black",
+  "stock": 20
+}
+ProductVariantResponseDto
+{
+  "id": 1,
+  "productId": 1,
+  "size": "L",
+  "color": "Black",
+  "stock": 20
+}
+Cart DTO
+CartItemRequestDto
+{
+  "productVariantId": 1,
+  "quantity": 2
+}
+UpdateCartItemQuantityRequestDto
+{
+  "quantity": 5
+}
+UpdateCartItemVariantRequestDto
+{
+  "productVariantId": 3
+}
+CartItemResponseDto
+{
+  "id": 1,
+  "productVariantId": 1,
+  "productName": "Áo Hoodie",
+  "size": "L",
+  "color": "Black",
+  "quantity": 2,
+  "price": 350000,
+  "imageUrl": "https://example.com/product.jpg",
+  "subtotal": 700000
+}
+CartResponseDto
+{
+  "id": 1,
+  "userId": 1,
+  "updatedAt": "2026-05-21T10:00:00",
+  "cartItems": [],
+  "totalAmount": 700000
+}
+Shipping Address DTO
+ShippingAddressRequestDto
+{
+  "userId": 1,
+  "receiverName": "Nguyen Trung Hieu",
+  "phone": "0123456789",
+  "addressLine": "123 ABC",
+  "city": "Ha Noi",
+  "district": "Cau Giay",
+  "isDefault": true
+}
+ShippingAddressResponseDto
+{
+  "id": 1,
+  "userId": 1,
+  "receiverName": "Nguyen Trung Hieu",
+  "phone": "0123456789",
+  "addressLine": "123 ABC",
+  "city": "Ha Noi",
+  "district": "Cau Giay",
+  "isDefault": true
+}
+Order DTO
+OrderRequestDto
+{
+  "userId": 1,
+  "addressId": 1,
+  "receiverName": "Nguyen Trung Hieu",
+  "phone": "0123456789",
+  "addressLine": "123 ABC",
+  "city": "Ha Noi",
+  "district": "Cau Giay"
+}
+OrderResponseDto
+{
+  "id": 1,
+  "userId": 1,
+  "userFullName": "Nguyen Trung Hieu",
+  "totalPrice": 1000000,
+  "finalPrice": 900000,
+  "status": "PENDING",
+  "addressSnapshot": "123 ABC, Cau Giay, Ha Noi",
+  "createdAt": "2026-05-21T10:00:00",
+  "updatedAt": "2026-05-21T10:00:00"
+}
+Payment DTO
+PaymentRequestDto
+{
+  "method": "COD",
+  "status": "PENDING",
+  "transactionCode": "TRANS123456"
+}
+PaymentResponseDto
+{
+  "id": 1,
+  "amount": 900000,
+  "method": "COD",
+  "status": "PENDING",
+  "transactionCode": "TRANS123456",
+  "createdAt": "2026-05-21T10:00:00"
+}
+Review DTO
+ReviewRequestDto
+{
+  "userId": 1,
+  "productId": 1,
+  "orderItemId": 1,
+  "rating": 5,
+  "comment": "Sản phẩm rất đẹp"
+}
+ReviewResponseDto
+{
+  "id": 1,
+  "userId": 1,
+  "username": "trunghieu",
+  "productId": 1,
+  "productName": "Áo Hoodie",
+  "orderItemId": 1,
+  "rating": 5,
+  "comment": "Sản phẩm rất đẹp",
+  "createdAt": "2026-05-21T10:00:00"
+}
+Conversation DTO
+ConversationRequestDto
+{
+  "userId": 1,
+  "shopId": 1
+}
+ConversationResponseDto
+{
+  "id": 1,
+  "userId": 1,
+  "userName": "trunghieu",
+  "userAvatar": "https://example.com/avatar.jpg",
+  "shopId": 1,
+  "shopName": "Hieu Fashion",
+  "shopLogo": "https://example.com/logo.jpg",
+  "createdAt": "2026-05-21T10:00:00"
+}
+Message DTO
+MessageRequestDto
+{
+  "conversationId": 1,
+  "senderId": 1,
+  "content": "Xin chào shop"
+}
+MessageResponseDto
+{
+  "id": 1,
+  "conversationId": 1,
+  "senderId": 1,
+  "senderName": "Nguyen Trung Hieu",
+  "content": "Xin chào shop",
+  "isRead": false,
+  "createdAt": "2026-05-21T10:00:00"
+}
+Discount DTO
+DiscountRequestDto
+{
+  "shopId": 1,
+  "discountType": "PERCENT",
+  "discountValue": 10,
+  "startDate": "2026-05-01T00:00:00",
+  "endDate": "2026-05-30T23:59:59",
+  "status": "ACTIVE",
+  "minOrderValue": 500000,
+  "productIds": [1, 2, 3]
+}
+DiscountResponseDto
+{
+  "id": 1,
+  "shopId": 1,
+  "discountType": "PERCENT",
+  "discountValue": 10,
+  "startDate": "2026-05-01T00:00:00",
+  "endDate": "2026-05-30T23:59:59",
+  "status": "ACTIVE",
+  "minOrderValue": 500000
+}
+Role DTO
+RoleResponseDto
+{
+  "id": 1,
+  "name": "ADMIN"
+}
+Order Item DTO
+OrderItemResponseDto
+{
+  "id": 1,
+  "productVariantId": 1,
+  "productName": "Áo Hoodie",
+  "productImage": "https://example.com/product.jpg",
+  "size": "L",
+  "color": "Black",
+  "quantity": 2,
+  "price": 350000
+}
+Order Shop DTO
+OrderShopResponseDto
+{
+  "id": 1,
+  "orderId": 1,
+  "shopId": 1,
+  "shopName": "Hieu Fashion",
+  "totalPrice": 1000000,
+  "finalPrice": 900000,
+  "discountId": 1,
+  "addressSnapshot": "123 ABC, Cau Giay, Ha Noi",
+  "status": "PENDING",
+  "orderItems": [],
+  "shipping": {}
+}
+Order Shipping DTO
+OrderShippingRequestDto
+{
+  "shippingStatus": "DELIVERING",
+  "trackingCode": "GHN123456"
+}
+OrderShippingResponseDto
+{
+  "id": 1,
+  "addressSnapshot": "123 ABC, Cau Giay, Ha Noi",
+  "shippingStatus": "DELIVERING",
+  "trackingCode": "GHN123456"
+}

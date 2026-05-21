@@ -23,10 +23,12 @@ export interface AddToCartRequest {
     quantity: number;
 }
 
-// DTO cho việc cập nhật một Cart Item
-// Giả định backend mong đợi cả productVariantId và quantity để cập nhật
-// (productVariantId có thể thay đổi nếu người dùng đổi size/color)
-export interface UpdateCartItemRequest {
-    productVariantId: number;
+// DTO cho việc cập nhật số lượng của một Cart Item
+export interface UpdateCartItemQuantityRequest {
     quantity: number;
+}
+
+// DTO mới cho việc cập nhật biến thể (Size/Color)
+export interface UpdateCartItemVariantRequest {
+    productVariantId: number;
 }

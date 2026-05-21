@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios';
-import type { AddToCartRequest, UpdateCartItemRequest, CartResponse } from '../types/cart.types';
+import type { AddToCartRequest, UpdateCartItemQuantityRequest, UpdateCartItemVariantRequest, CartResponse } from '../types/cart.types';
 
 
 // Giả sử userId được truyền vào từ hook lấy từ authStore
@@ -17,21 +17,21 @@ export const addToCart = async (userId: number, data: AddToCartRequest): Promise
 export const updateCartItemQuantity = async (
     userId: number,
     itemId: number,
-    quantity: number // Backend mong đợi raw integer
+    data: UpdateCartItemQuantityRequest // Backend mong đợi { quantity: number }
 ): Promise<void> => {
-    await api.put(`/api/carts/user/${userId}/items/${itemId}`, quantity); // Gửi raw integer
+    // Gửi object { quantity: number }
+    await api.put(`/api/carts/user/${userId}/items/${itemId}`, data, {
+        headers: { 'Content-Type': 'application/json' }
+    });
 };
 
 // API để cập nhật BIẾN THỂ (size/color) của một cart item.
-// Backend cần một endpoint riêng biệt hoặc cấu trúc request body khác cho việc này.
 export const updateCartItemVariant = async (
     userId: number,
     itemId: number,
-    data: UpdateCartItemRequest // Frontend gửi { productVariantId, quantity }
+    data: UpdateCartItemVariantRequest // Frontend gửi { productVariantId }
 ): Promise<void> => {
-    // Giả định backend có một endpoint chấp nhận UpdateCartItemRequest object
-    // Nếu không, bạn cần điều chỉnh backend hoặc sử dụng cách khác (ví dụ: xóa item cũ, thêm item mới)
-    await api.put(`/api/carts/user/${userId}/items/${itemId}/variant`, data); // Ví dụ endpoint cho cập nhật biến thể
+    await api.put(`/api/carts/user/${userId}/items/${itemId}/variant`, data);
 };
 
 export const removeFromCart = async (userId: number, itemId: number): Promise<void> => {

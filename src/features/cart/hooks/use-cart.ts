@@ -30,7 +30,7 @@ export const useAddToCart = () => {
             toast.success('Đã thêm vào giỏ hàng');
         },
         onError: () => {
-            toast.error('Không thể thêm vào giỏ hàng');
+            toast.error('Sản phẩm hiện đã hết hàng');
         }
     });
 };
@@ -42,9 +42,18 @@ export const useUpdateCartItemQuantity = () => {
 
     return useMutation({
         mutationFn: ({ itemId, quantity }: { itemId: number; quantity: number }) =>
-            updateCartItemQuantity(user!.id, itemId, quantity), // Gọi API cập nhật số lượng
+            updateCartItemQuantity(user!.id, itemId, { quantity }), // Gọi API cập nhật số lượng với object { quantity }
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cart', user?.id] });
+            toast.success('Đã cập nhật số lượng sản phẩm');
+        },
+        onError: (error: any) => {
+            const serverMessage = error.response?.data?.message || '';
+            if (serverMessage.toLowerCase().includes('stock') || error.response?.status === 400) {
+                toast.error('Số lượng sản phẩm vượt quá tồn kho');
+            } else {
+                toast.error(`Lỗi cập nhật số lượng: ${error.message}`);
+            }
         }
     });
 };
@@ -55,10 +64,14 @@ export const useUpdateCartItemVariant = () => {
     const user = useAuthStore((state) => state.user);
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ itemId, quantity, productVariantId }: { itemId: number; quantity: number; productVariantId: number }) =>
-            updateCartItemVariant(user!.id, itemId, { quantity, productVariantId }), // Gọi API cập nhật biến thể
+        mutationFn: ({ itemId, productVariantId }: { itemId: number; productVariantId: number }) =>
+            updateCartItemVariant(user!.id, itemId, { productVariantId }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cart', user?.id] });
+            toast.success('Đã cập nhật biến thể sản phẩm'); // Đã có, giữ nguyên
+        },
+        onError: (error) => {
+            toast.error(`Lỗi cập nhật biến thể: ${error.message}`);
         }
     });
 };
