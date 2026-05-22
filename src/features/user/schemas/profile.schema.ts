@@ -8,7 +8,7 @@ export const profileSchema = z.object({
             /^(0|\+84)[0-9]{9}$/,
             'Số điện thoại không hợp lệ. Phải bắt đầu bằng 0 hoặc +84 và có 10 chữ số.'
         ),
-    gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+    gender: z.string().optional(),
     dateOfBirth: z.string().optional(),
 });
 

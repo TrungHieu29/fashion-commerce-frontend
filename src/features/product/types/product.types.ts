@@ -4,10 +4,14 @@ export interface ProductResponse {
     productDetail: string;
     price: number;
     status: string;
-    rating: number;
+    rating?: number;
+    imageUrl?: string;
     shopId: number;
+    shopName?: string;
     categoryId: number;
+    categoryName?: string;
     brandId: number;
+    brandName?: string;
     createdAt: string;
 }
 

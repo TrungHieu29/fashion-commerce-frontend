@@ -13,6 +13,9 @@ export interface UserResponse {
 }
 
 export interface UserUpdateRequest {
+    // These are required by the backend's UserRequestDto for PUT operations
+    username: string;
+    password: string; // Assuming password is required for update validation or change
     fullName?: string;
     email?: string;
     phone?: string;

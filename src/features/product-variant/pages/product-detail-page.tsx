@@ -204,6 +204,22 @@ const ProductDetailPage = () => {
 
                 {/* INFO */}
                 <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-3">
+                        {product.brandName && (
+                            <span className="px-2 py-0.5 bg-[#111111] text-white text-[10px] font-black rounded uppercase tracking-widest">
+                                {product.brandName}
+                            </span>
+                        )}
+                        {product.brandName && product.categoryName && (
+                            <span className="text-[11px] text-[#9CA3AF]">/</span>
+                        )}
+                        {product.categoryName && (
+                            <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-tight">
+                                {product.categoryName}
+                            </span>
+                        )}
+                    </div>
+
                     {/* TITLE */}
                     <h1 className="text-3xl font-bold text-gray-900">
                         {product.productName}

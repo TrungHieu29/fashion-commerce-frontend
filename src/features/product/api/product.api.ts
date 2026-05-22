@@ -1,21 +1,26 @@
 import { api } from '@/lib/axios';
-import type { ProductResponse, ProductListResponse } from '../types/product.types';
 
-export const getProducts = async (params?: any): Promise<ProductListResponse> => {
-    const response =
-        await api.get<ProductListResponse>(
-            '/api/products',
-            { params }
-        );
-
+export const getProductsByShop = async (shopId: number) => {
+    const response = await api.get(`/api/products/shop/${shopId}`);
     return response.data;
 };
 
-export const getProductById = async (id: number | string): Promise<ProductResponse> => {
-    const response =
-        await api.get<ProductResponse>(
-            `/api/products/${id}`
-        );
+export const getProducts = async () => {
+    const response = await api.get('/api/products');
+    return response.data;
+};
 
+export const createProduct = async (data: any) => {
+    const response = await api.post('/api/products', data);
+    return response.data;
+};
+
+export const updateProduct = async (id: number, data: any) => {
+    const response = await api.put(`/api/products/${id}`, data);
+    return response.data;
+};
+
+export const deleteProduct = async (id: number) => {
+    const response = await api.delete(`/api/products/${id}`);
     return response.data;
 };
