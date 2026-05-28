@@ -2,7 +2,9 @@ export interface ProductResponse {
     id: number;
     productName: string;
     productDetail: string;
-    price: number;
+    originalPrice: number; // Giá gốc của sản phẩm
+    finalPrice: number;    // Giá cuối cùng sau khi áp dụng discount
+    discountAmount: number; // Số tiền giảm giá
     status: string;
     rating?: number;
     imageUrl?: string;

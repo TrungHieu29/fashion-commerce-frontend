@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useProducts } from '../hooks/use-products';
 import { ProductCard } from '../components/product-card';
+import type { ProductResponse } from '../types/product.types';
 
 const ProductsPage = () => {
     const [page, setPage] = useState(0);
@@ -11,6 +12,15 @@ const ProductsPage = () => {
         isError,
         error,
     } = useProducts({ page, size: 8 });
+
+    // Sắp xếp sản phẩm mới nhất lên đầu dựa trên createdAt
+    // Hook này phải được gọi VÔ ĐIỀU KIỆN trước bất kỳ câu lệnh return sớm nào
+    const sortedProducts = useMemo(() => {
+        if (!productPage?.content) return [];
+        return [...productPage.content].sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+    }, [productPage?.content]);
 
     if (isLoading) {
         return (
@@ -36,9 +46,9 @@ const ProductsPage = () => {
                 Danh sách sản phẩm
             </h1>
 
-            {productPage?.content && productPage.content.length > 0 ? (
+            {sortedProducts.length > 0 ? (
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {productPage.content.map((product) => (
+                    {sortedProducts.map((product: ProductResponse) => (
                         <ProductCard key={product.id} product={product} />
                     ))}
                 </div>

@@ -15,7 +15,7 @@ export const CartItem = ({ item }: CartItemProps) => {
     const removeMutation = useRemoveFromCart();
 
     // Lấy chi tiết sản phẩm để biết các biến thể khác (Size/Màu) có sẵn
-    const { data: productDetails, isLoading: isLoadingDetails } = useProductDetail(item?.productId?.toString());
+    const { data: productDetails, isLoading: isLoadingDetails } = useProductDetail(item.productId ? String(item.productId) : undefined);
 
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(item.quantity.toString());
@@ -80,9 +80,8 @@ export const CartItem = ({ item }: CartItemProps) => {
     return (
         <div className="flex items-center gap-4 border-b border-gray-100 py-4 last:border-0">
             <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
-                {/* Placeholder ảnh */}
                 {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />
+                    <img src={item.imageUrl} key={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center text-[10px] text-gray-400">IMG</div>
                 )}
@@ -92,7 +91,7 @@ export const CartItem = ({ item }: CartItemProps) => {
                 <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{item.productName}</h4>
 
                 <div className="flex items-center gap-2 mt-1">
-                    {!item.productId || isLoadingDetails || !productDetails ? (
+                    {isLoadingDetails || !productDetails || !productDetails.variants ? (
                         // Hiển thị dạng chữ nếu đang tải hoặc không có productId để chỉnh sửa
                         <p className="text-xs text-gray-500">
                             {item.size} / {item.color}
@@ -129,7 +128,14 @@ export const CartItem = ({ item }: CartItemProps) => {
                 </div>
 
                 <div className="mt-auto">
-                    <p className="text-sm text-blue-600 font-bold">{item.price.toLocaleString()}đ</p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-sm text-[#111111] font-black">{item.price.toLocaleString()}đ</p>
+                        {item.originalPrice && item.originalPrice > item.price && (
+                            <p className="text-[11px] text-gray-400 line-through">
+                                {item.originalPrice.toLocaleString()}đ
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
 

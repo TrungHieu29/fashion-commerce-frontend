@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { Plus, Trash2, PackagePlus, AlertCircle, Save } from 'lucide-react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { Plus, Trash2, PackagePlus, AlertCircle, Save, Image as ImageIcon, UploadCloud } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createProduct } from '@/features/product/api/product.api';
@@ -12,15 +12,16 @@ const AddProductPage = () => {
     const navigate = useNavigate();
     const { data: shop } = useMyShop();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [colorImages, setColorImages] = useState<Record<string, File>>({});
 
-    const { register, control, handleSubmit, formState: { errors } } = useForm({
+    const { register, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
             productName: '',
             productDetail: '',
             price: 0,
             categoryId: '',
             brandId: '',
-            variants: [{ size: 'M', color: 'Black', stock: 10 }]
+            variants: [{ size: '', color: '', stock: 0 }]
         }
     });
 
@@ -46,8 +47,37 @@ const AddProductPage = () => {
         name: "variants"
     });
 
+    // Lấy danh sách các màu duy nhất từ variants để hiển thị phần upload ảnh
+    const watchedVariants = useWatch({ control, name: 'variants' });
+    const uniqueColors = useMemo(() => {
+        const colorMap = new Map<string, string>(); // lowercase -> original
+
+        (watchedVariants || []).forEach(v => {
+            const trimmed = v.color?.trim();
+            if (trimmed) {
+                const lower = trimmed.toLowerCase();
+                // Chỉ lấy label của lần xuất hiện đầu tiên để tránh trùng lặp do hoa/thường
+                if (!colorMap.has(lower)) {
+                    colorMap.set(lower, trimmed);
+                }
+            }
+        });
+
+        const result = Array.from(colorMap.values());
+        return result.length > 0 ? result : [''];
+    }, [watchedVariants]);
+
+    const handleFileChange = (color: string, file: File) => {
+        setColorImages(prev => ({ ...prev, [color]: file }));
+    };
+
     const onSubmit = async (data: any) => {
         if (!shop) return;
+        if (uniqueColors.length > 0 && uniqueColors.every(c => c !== '') && uniqueColors.some(color => !colorImages[color])) {
+            toast.error('Vui lòng upload ảnh cho tất cả các màu sắc đã chọn');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // 1. Tạo sản phẩm chính
@@ -72,6 +102,18 @@ const AddProductPage = () => {
                 })
             );
             await Promise.all(variantPromises);
+
+            // 3. Upload ảnh theo từng màu (Cloudinary qua backend)
+            const imagePromises = uniqueColors.map(color => {
+                const formData = new FormData();
+                formData.append('file', colorImages[color]);
+                formData.append('productId', newProduct.id.toString());
+                formData.append('color', color);
+                return api.post('/api/product-images/upload', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+            });
+            await Promise.all(imagePromises);
 
             toast.success('Thêm sản phẩm và biến thể thành công!');
             navigate('/my-shop/products');
@@ -112,8 +154,8 @@ const AddProductPage = () => {
                         <div>
                             <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase">Giá bán (VNĐ)</label>
                             <input
-                                type="number"
-                                {...register('price', { required: true, min: 0 })}
+                                type="number" // Đảm bảo input là kiểu số
+                                {...register('price', { required: true, min: 0, valueAsNumber: true })} // Thêm valueAsNumber để đảm bảo giá trị là số
                                 className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl focus:border-[#111111] outline-none font-mono"
                                 placeholder="0"
                             />
@@ -208,6 +250,49 @@ const AddProductPage = () => {
                         {fields.length === 0 && (
                             <p className="text-center text-[#9CA3AF] text-sm italic py-4">Chưa có phân loại nào được thêm.</p>
                         )}
+                    </div>
+                </div>
+
+                {/* Quản lý Hình ảnh - Đưa xuống dưới Phân loại hàng */}
+                <div className="bg-white p-8 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-5">
+                    <h3 className="font-bold text-lg border-b pb-4 mb-2">Hình ảnh sản phẩm</h3>
+                    <p className="text-xs text-[#9CA3AF] italic -mt-2 mb-4">
+                        * Hệ thống tự động tạo ô upload ảnh dựa trên các màu sắc bạn đã nhập ở phần Phân loại hàng.
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {uniqueColors.map(color => (
+                            <div key={color} className="space-y-2">
+                                <label className="block text-[11px] font-black text-[#9CA3AF] uppercase">{color || 'Ảnh chính (Mặc định)'}</label>
+                                <div className="relative aspect-square border-2 border-dashed border-[#E5E7EB] rounded-2xl flex flex-col items-center justify-center hover:border-[#111111] transition-all overflow-hidden group">
+                                    {colorImages[color] ? (
+                                        <>
+                                            <img
+                                                src={URL.createObjectURL(colorImages[color])}
+                                                className="w-full h-full object-cover"
+                                                alt={color}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newImages = { ...colorImages };
+                                                    delete newImages[color];
+                                                    setColorImages(newImages);
+                                                }}
+                                                className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <label className="cursor-pointer flex flex-col items-center">
+                                            <UploadCloud size={24} className="text-[#9CA3AF]" />
+                                            <span className="text-[10px] font-bold text-[#9CA3AF] mt-2">CHỌN ẢNH</span>
+                                            <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && handleFileChange(color, e.target.files[0])} />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 

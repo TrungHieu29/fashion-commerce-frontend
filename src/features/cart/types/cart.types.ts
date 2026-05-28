@@ -7,7 +7,8 @@ export interface CartItemResponse {
     color: string; // Màu sắc của variant
     size: string;  // Kích thước của variant
     quantity: number;
-    price: number; // Giá của variant tại thời điểm thêm vào giỏ
+    price: number; // Đây là finalPrice tại thời điểm snapshot
+    originalPrice?: number; // Giá gốc để hiển thị gạch ngang trong giỏ hàng
     subtotal: number; // Tổng tiền cho item này (price * quantity)
 }
 

@@ -1,596 +1,487 @@
-Fashion Commerce API Documentation
-Tổng quan
-
-Tài liệu REST API cho hệ thống thương mại điện tử thời trang được xây dựng bằng Spring Boot và OpenAPI 3.0.
+FASHION COMMERCE API SPECIFICATION (OPTIMIZED FOR AI)
+OAS Version: 3.0
 
 Base URL: http://localhost:8080
-Swagger UI: http://localhost:8080/swagger-ui/index.html
-OpenAPI JSON: http://localhost:8080/v3/api-docs
-Authentication
-Auth Controller
-Đăng ký tài khoản
-POST /api/auth/register
-Đăng nhập
-POST /api/auth/authenticate
 
-Response:
+I. DANH SÁCH MODULES & ENDPOINTS
+1. Authentication & Roles (auth-controller, role-controller)
+POST /api/auth/register (Body: UserRequestDto) -> AuthResponse
 
+POST /api/auth/authenticate (Body: AuthRequestDto) -> AuthResponse
+
+GET /api/roles -> List<RoleResponseDto>
+
+GET /api/roles/{id} -> RoleResponseDto
+
+GET /api/roles/name/{name} -> RoleResponseDto
+
+2. User & Address (user-controller, shipping-address-controller)
+GET /api/users -> List<UserResponseDto>
+
+GET /api/users/{id} -> UserResponseDto
+
+GET /api/users/username/{username} -> UserResponseDto
+
+PUT /api/users/{id} (Body: UserUpdateRequestDto) -> UserResponseDto
+
+DELETE /api/users/{id} -> void
+
+GET /api/shipping-addresses -> List<ShippingAddressResponseDto>
+
+GET /api/shipping-addresses/{id} -> ShippingAddressResponseDto
+
+GET /api/shipping-addresses/user/{userId} -> List<ShippingAddressResponseDto>
+
+POST /api/shipping-addresses (Body: ShippingAddressRequestDto) -> ShippingAddressResponseDto
+
+PUT /api/shipping-addresses/{id} (Body: ShippingAddressRequestDto) -> ShippingAddressResponseDto
+
+PUT /api/shipping-addresses/{id}/set-default -> ShippingAddressResponseDto
+
+DELETE /api/shipping-addresses/{id} -> void
+
+3. Shop Module (shop-controller, order-shop-controller)
+GET /api/shops -> List<ShopResponseDto>
+
+GET /api/shops/{id} -> ShopResponseDto
+
+GET /api/shops/owner/{ownerId} -> ShopResponseDto
+
+POST /api/shops (Body: ShopRequestDto) -> ShopResponseDto
+
+PUT /api/shops/{id} (Body: ShopRequestDto) -> ShopResponseDto
+
+DELETE /api/shops/{id} -> void
+
+GET /api/order-shops/{id} -> OrderShopResponseDto
+
+GET /api/order-shops/shop/{shopId} -> PageOrderShopResponseDto
+
+GET /api/order-shops/order/{orderId} -> List<OrderShopResponseDto>
+
+4. Product & Category & Brand (product-, product-variant-, product-brand-, product-image-, category-)
+GET /api/products (Params: page, size) -> PageProductResponseDto
+
+GET /api/products/{id} -> ProductResponseDto
+
+GET /api/products/search (Params: keyword, page, size) -> PageProductResponseDto
+
+GET /api/products/shop/{shopId} -> PageProductResponseDto
+
+GET /api/products/category/{categoryId} -> PageProductResponseDto
+
+GET /api/products/brand/{brandId} -> PageProductResponseDto
+
+POST /api/products (Body: ProductRequestDto) -> ProductResponseDto
+
+PUT /api/products/{id} (Body: ProductRequestDto) -> ProductResponseDto
+
+DELETE /api/products/{id} -> void
+
+GET /api/product-variants -> List<ProductVariantResponseDto>
+
+GET /api/product-variants/{id} -> ProductVariantResponseDto
+
+GET /api/product-variants/product/{productId} -> List<ProductVariantResponseDto>
+
+POST /api/product-variants (Body: ProductVariantRequestDto) -> ProductVariantResponseDto
+
+PUT /api/product-variants/{id} (Body: ProductVariantRequestDto) -> ProductVariantResponseDto
+
+DELETE /api/product-variants/{id} -> void
+
+GET /api/product-brands -> List<ProductBrandResponseDto>
+
+GET /api/product-brands/{id} -> ProductBrandResponseDto
+
+POST /api/product-brands (Body: ProductBrandRequestDto) -> ProductBrandResponseDto
+
+PUT /api/product-brands/{id} (Body: ProductBrandRequestDto) -> ProductBrandResponseDto
+
+DELETE /api/product-brands/{id} -> void
+
+GET /api/categories -> List<CategoryResponseDto>
+
+GET /api/categories/{id} -> CategoryResponseDto
+
+POST /api/categories (Body: CategoryRequestDto) -> CategoryResponseDto
+
+PUT /api/categories/{id} (Body: CategoryRequestDto) -> CategoryResponseDto
+
+DELETE /api/categories/{id} -> void
+
+GET /api/product-images/product/{productId} -> List<ProductImageResponseDto>
+
+POST /api/product-images/upload (Multipart) -> ProductImageResponseDto
+
+DELETE /api/product-images/{id} -> void
+
+5. Cart Module (cart-controller)
+GET /api/carts/user/{userId} -> CartResponseDto
+
+POST /api/carts/user/{userId}/items (Body: CartItemRequestDto) -> CartResponseDto
+
+PUT /api/carts/user/{userId}/items/{cartItemId} (Body: UpdateCartItemQuantityRequestDto) -> CartResponseDto
+
+PUT /api/carts/user/{userId}/items/{cartItemId}/variant (Body: UpdateCartItemVariantRequestDto) -> CartResponseDto
+
+DELETE /api/carts/user/{userId}/items/{cartItemId} -> CartResponseDto
+
+DELETE /api/carts/user/{userId} -> void
+
+6. Order & Item & Shipping & Payment (order-, order-item-, order-shipping-, payment-)
+GET /api/orders (Params: status, pageable) -> PageOrderResponseDto
+
+GET /api/orders/{id} -> OrderResponseDto
+
+GET /api/orders/user/{userId} -> PageOrderResponseDto
+
+POST /api/orders (Body: OrderRequestDto) -> OrderResponseDto
+
+PUT /api/orders/{orderId}/status (Params: status) -> OrderResponseDto
+
+DELETE /api/orders/{orderId} -> void
+
+GET /api/order-items/{id} -> OrderItemResponseDto
+
+GET /api/order-items/product-variant/{productVariantId} -> PageOrderItemResponseDto
+
+GET /api/order-items/order-shop/{orderShopId} -> List<OrderItemResponseDto>
+
+GET /api/order-shippings/{id} -> OrderShippingResponseDto
+
+GET /api/order-shippings/order-shop/{orderShopId} -> OrderShippingResponseDto
+
+POST /api/order-shippings/order-shop/{orderShopId} (Body: OrderShippingRequestDto) -> OrderShippingResponseDto
+
+PUT /api/order-shippings/{id} (Body: OrderShippingRequestDto) -> OrderShippingResponseDto
+
+GET /api/payments/{id} -> PaymentResponseDto
+
+GET /api/payments/orders/{orderId} -> PaymentResponseDto
+
+POST /api/payments/orders/{orderId} (Body: PaymentRequestDto) -> PaymentResponseDto
+
+PUT /api/payments/{id}/status (Params: status) -> PaymentResponseDto
+
+7. Review & Discount & Chat (review-, discount-, message-, conversation-)
+GET /api/reviews/{id} -> ReviewResponseDto
+
+GET /api/reviews/users/{userId} -> PageReviewResponseDto
+
+GET /api/reviews/products/{productId} -> PageReviewResponseDto
+
+POST /api/reviews (Body: ReviewRequestDto) -> ReviewResponseDto
+
+PUT /api/reviews/{id} (Body: ReviewRequestDto) -> ReviewResponseDto
+
+DELETE /api/reviews/{id} -> void
+
+GET /api/discounts/{id} -> DiscountResponseDto
+
+GET /api/discounts/shops/{shopId} -> PageDiscountResponseDto
+
+GET /api/discounts/shops/{shopId}/active -> List<DiscountResponseDto>
+
+POST /api/discounts (Body: DiscountRequestDto) -> DiscountResponseDto
+
+PUT /api/discounts/{id} (Body: DiscountRequestDto) -> DiscountResponseDto
+
+DELETE /api/discounts/{id} -> void
+
+GET /api/conversations -> PageConversationResponseDto
+
+GET /api/conversations/{id} -> ConversationResponseDto
+
+GET /api/conversations/users/{userId} -> List<ConversationResponseDto>
+
+GET /api/conversations/shops/{shopId} -> List<ConversationResponseDto>
+
+POST /api/conversations (Body: ConversationRequestDto) -> ConversationResponseDto
+
+GET /api/messages/conversations/{conversationId} -> PageMessageResponseDto
+
+POST /api/messages (Body: MessageRequestDto) -> MessageResponseDto
+
+PUT /api/messages/conversations/{conversationId}/read -> void
+
+II. ĐỊNH NGHĨA CHI TIẾT SCHEMAS (DTOs DATA STRUCT)
+JSON
 {
-  "accessToken": "jwt_token",
-  "refreshToken": "refresh_token",
-  "user": {
-    "id": 1,
-    "username": "admin"
+  "UserRequestDto": {
+    "username": "string (Required)",
+    "password": "string (Required)",
+    "fullName": "string (Required)",
+    "email": "string",
+    "phone": "string",
+    "gender": "string (MALE/FEMALE)",
+    "dateOfBirth": "LocalDate (yyyy-MM-dd)",
+    "avatar": "string"
+  },
+  "UserUpdateRequestDto": {
+    "fullName": "string (Required)",
+    "phone": "string",
+    "gender": "string",
+    "dateOfBirth": "LocalDate",
+    "avatar": "string"
+  },
+  "UserResponseDto": {
+    "id": "Long",
+    "username": "string",
+    "fullName": "string",
+    "phone": "string",
+    "status": "string (ACTIVE/INACTIVE)",
+    "email": "string",
+    "avatar": "string",
+    "gender": "string",
+    "dateOfBirth": "LocalDate",
+    "createdAt": "LocalDateTime",
+    "roleName": "string"
+  },
+  "ShopRequestDto": {
+    "shopName": "string (Required)",
+    "logo": "string",
+    "phone": "string (Required)",
+    "address": "string",
+    "email": "string",
+    "ownerId": "Long"
+  },
+  "ShopResponseDto": {
+    "id": "Long",
+    "shopName": "string",
+    "logo": "string",
+    "phone": "string",
+    "status": "string",
+    "address": "string",
+    "email": "string",
+    "createdAt": "LocalDateTime",
+    "ownerId": "Long",
+    "ownerFullName": "string"
+  },
+  "ShippingAddressRequestDto": {
+    "userId": "Long (Required)",
+    "receiverName": "string (Required)",
+    "phone": "string",
+    "addressLine": "string (Required)",
+    "city": "string (Required)",
+    "district": "string (Required)",
+    "isDefault": "Boolean"
+  },
+  "ShippingAddressResponseDto": {
+    "id": "Long",
+    "userId": "Long",
+    "receiverName": "string",
+    "phone": "string",
+    "addressLine": "string",
+    "city": "string",
+    "district": "string",
+    "isDefault": "Boolean"
+  },
+  "ProductRequestDto": {
+    "productName": "string (Required)",
+    "productDetail": "string",
+    "status": "string (Required, ACTIVE/...) ",
+    "price": "Double/BigDecimal (Required)",
+    "shopId": "Long (Required)",
+    "brandId": "Long (Required)",
+    "categoryId": "Long (Required)"
+  },
+  "ProductResponseDto": {
+    "id": "Long",
+    "productName": "string",
+    "productDetail": "string",
+    "rating": "Double",
+    "status": "string",
+    "originalPrice": "Double",
+    "finalPrice": "Double",
+    "discountAmount": "Double",
+    "shopId": "Long",
+    "shopName": "string",
+    "brandId": "Long",
+    "brandName": "string",
+    "categoryId": "Long",
+    "categoryName": "string"
+  },
+  "ProductVariantRequestDto": {
+    "productId": "Long (Required)",
+    "size": "string (Required)",
+    "color": "string (Required)",
+    "stock": "Integer (Required)"
+  },
+  "ProductVariantResponseDto": {
+    "id": "Long",
+    "productId": "Long",
+    "size": "string",
+    "color": "string",
+    "stock": "Integer"
+  },
+  "ProductImageResponseDto": {
+    "id": "Long",
+    "productId": "Long",
+    "color": "string",
+    "imageUrl": "string"
+  },
+  "ProductBrandRequestDto": {
+    "name": "string (Required)",
+    "description": "string"
+  },
+  "ProductBrandResponseDto": {
+    "id": "Long",
+    "name": "string",
+    "description": "string"
+  },
+  "CategoryRequestDto": {
+    "name": "string (Required)"
+  },
+  "CategoryResponseDto": {
+    "id": "Long",
+    "name": "string"
+  },
+  "CartResponseDto": {
+    "id": "Long",
+    "userId": "Long",
+    "updatedAt": "LocalDateTime",
+    "cartItems": "List<CartItemResponseDto>",
+    "totalAmount": "Double"
+  },
+  "CartItemRequestDto": {
+    "productVariantId": "Long (Required)",
+    "quantity": "Integer"
+  },
+  "CartItemResponseDto": {
+    "id": "Long",
+    "productVariantId": "Long",
+    "productId": "Long",
+    "productName": "string",
+    "size": "string",
+    "color": "string",
+    "quantity": "Integer",
+    "price": "Double",
+    "imageUrl": "string",
+    "subtotal": "Double"
+  },
+  "UpdateCartItemQuantityRequestDto": { "quantity": "Integer (Required)" },
+  "UpdateCartItemVariantRequestDto": { "productVariantId": "Long (Required)" },
+  "OrderRequestDto": {
+    "userId": "Long (Required)",
+    "voucherCode": "string",
+    "addressId": "Long",
+    "receiverName": "string",
+    "phone": "string",
+    "addressLine": "string",
+    "city": "string",
+    "district": "string"
+  },
+  "OrderResponseDto": {
+    "id": "Long",
+    "userId": "Long",
+    "userFullName": "string",
+    "totalPrice": "Double",
+    "finalPrice": "Double",
+    "status": "string (PENDING/PROCESSING/SHIPPED/DELIVERED/CANCELLED/RETURNED)",
+    "addressSnapshot": "string",
+    "createdAt": "LocalDateTime",
+    "updatedAt": "LocalDateTime"
+  },
+  "OrderShopResponseDto": {
+    "id": "Long",
+    "orderId": "Long",
+    "shopId": "Long",
+    "shopName": "string",
+    "totalPrice": "Double",
+    "finalPrice": "Double",
+    "discountId": "Long",
+    "addressSnapshot": "string",
+    "status": "string",
+    "orderItems": "List<OrderItemResponseDto>",
+    "shipping": "OrderShippingResponseDto"
+  },
+  "OrderItemResponseDto": {
+    "id": "Long",
+    "productVariantId": "Long",
+    "productName": "string",
+    "productImage": "string",
+    "size": "string",
+    "color": "string",
+    "quantity": "Integer",
+    "price": "Double"
+  },
+  "OrderShippingRequestDto": {
+    "shippingStatus": "string (PENDING/...) ",
+    "trackingCode": "string"
+  },
+  "OrderShippingResponseDto": {
+    "id": "Long",
+    "addressSnapshot": "string",
+    "shippingStatus": "string",
+    "trackingCode": "string"
+  },
+  "PaymentRequestDto": {
+    "method": "string (Required, COD/...)",
+    "status": "string",
+    "transactionCode": "string"
+  },
+  "PaymentResponseDto": {
+    "id": "Long",
+    "amount": "Double",
+    "method": "string",
+    "status": "string (PENDING/COMPLETED/FAILED/REFUNDED)",
+    "transactionCode": "string",
+    "createdAt": "LocalDateTime"
+  },
+  "ReviewRequestDto": {
+    "userId": "Long (Required)",
+    "productId": "Long (Required)",
+    "orderItemId": "Long (Required)",
+    "rating": "Integer (Required)",
+    "comment": "string (Required)"
+  },
+  "ReviewResponseDto": {
+    "id": "Long",
+    "userId": "Long",
+    "username": "string",
+    "productId": "Long",
+    "productName": "string",
+    "orderItemId": "Long",
+    "rating": "Integer",
+    "comment": "string",
+    "createdAt": "LocalDateTime"
+  },
+  "DiscountRequestDto": {
+    "shopId": "Long (Required)",
+    "discountTarget": "string (Required)",
+    "discountType": "string (Required)",
+    "discountValue": "Double (Required)",
+    "code": "string",
+    "startDate": "LocalDateTime (Required)",
+    "endDate": "LocalDateTime (Required)",
+    "status": "string (Required)",
+    "minOrderValue": "Double",
+    "productIds": "List<Long>"
+  },
+  "DiscountResponseDto": {
+    "id": "Long",
+    "shopId": "Long",
+    "discountType": "string",
+    "discountValue": "Double",
+    "startDate": "LocalDateTime",
+    "endDate": "LocalDateTime",
+    "status": "string",
+    "minOrderValue": "Double"
+  },
+  "ConversationRequestDto": { "userId": "Long (Required)", "shopId": "Long (Required)" },
+  "ConversationResponseDto": {
+    "id": "Long", "userId": "Long", "userName": "string", "userAvatar": "string",
+    "shopId": "Long", "shopName": "string", "shopLogo": "string", "createdAt": "LocalDateTime"
+  },
+  "MessageRequestDto": { "conversationId": "Long (Required)", "senderId": "Long (Required)", "content": "string (Required)" },
+  "MessageResponseDto": {
+    "id": "Long", "conversationId": "Long", "senderId": "Long", "senderName": "string",
+    "content": "string", "isRead": "Boolean", "createdAt": "LocalDateTime"
+  },
+  "AuthResponse": {
+    "accessToken": "string",
+    "refreshToken": "string",
+    "user": "UserResponseDto"
   }
-}
-User Management
-User Controller
-Lấy danh sách người dùng
-GET /api/users
-Lấy người dùng theo ID
-GET /api/users/{id}
-Lấy người dùng theo username
-GET /api/users/username/{username}
-Cập nhật người dùng
-PUT /api/users/{id}
-Xóa người dùng
-DELETE /api/users/{id}
-Product Management
-Product Controller
-Lấy danh sách sản phẩm
-GET /api/products
-Tìm kiếm sản phẩm
-GET /api/products/search
-Lấy sản phẩm theo ID
-GET /api/products/{id}
-Lấy sản phẩm theo shop
-GET /api/products/shop/{shopId}
-Lấy sản phẩm theo danh mục
-GET /api/products/category/{categoryId}
-Lấy sản phẩm theo thương hiệu
-GET /api/products/brand/{brandId}
-Tạo sản phẩm
-POST /api/products
-Cập nhật sản phẩm
-PUT /api/products/{id}
-Xóa sản phẩm
-DELETE /api/products/{id}
-Product Variant Management
-Product Variant Controller
-Lấy danh sách biến thể
-GET /api/product-variants
-Lấy biến thể theo ID
-GET /api/product-variants/{id}
-Lấy biến thể theo sản phẩm
-GET /api/product-variants/product/{productId}
-Tạo biến thể
-POST /api/product-variants
-Cập nhật biến thể
-PUT /api/product-variants/{id}
-Xóa biến thể
-DELETE /api/product-variants/{id}
-Brand Management
-Product Brand Controller
-Lấy danh sách thương hiệu
-GET /api/product-brands
-Lấy thương hiệu theo ID
-GET /api/product-brands/{id}
-Tạo thương hiệu
-POST /api/product-brands
-Cập nhật thương hiệu
-PUT /api/product-brands/{id}
-Xóa thương hiệu
-DELETE /api/product-brands/{id}
-Category Management
-Category Controller
-Lấy danh sách danh mục
-GET /api/categories
-Lấy danh mục theo ID
-GET /api/categories/{id}
-Tạo danh mục
-POST /api/categories
-Cập nhật danh mục
-PUT /api/categories/{id}
-Xóa danh mục
-DELETE /api/categories/{id}
-Cart Management
-Cart Controller
-Lấy giỏ hàng của user
-GET /api/carts/user/{userId}
-Thêm sản phẩm vào giỏ hàng
-POST /api/carts/user/{userId}/items
-
-Body:
-
-{
-  "productVariantId": 1,
-  "quantity": 2
-}
-Cập nhật số lượng sản phẩm
-PUT /api/carts/user/{userId}/items/{cartItemId}
-
-Body:
-
-{
-  "quantity": 3
-}
-Đổi variant sản phẩm
-PUT /api/carts/user/{userId}/items/{cartItemId}/variant
-
-Body:
-
-{
-  "productVariantId": 5
-}
-Xóa sản phẩm khỏi giỏ hàng
-DELETE /api/carts/user/{userId}/items/{cartItemId}
-Xóa toàn bộ giỏ hàng
-DELETE /api/carts/user/{userId}
-Order Management
-Order Controller
-Tạo đơn hàng
-POST /api/orders
-Lấy danh sách đơn hàng
-GET /api/orders
-Lấy đơn hàng theo ID
-GET /api/orders/{id}
-Lấy đơn hàng theo user
-GET /api/orders/user/{userId}
-Cập nhật trạng thái đơn hàng
-PUT /api/orders/{orderId}/status
-Xóa đơn hàng
-DELETE /api/orders/{orderId}
-Payment Management
-Payment Controller
-Thanh toán đơn hàng
-POST /api/payments/orders/{orderId}
-Lấy thanh toán theo đơn hàng
-GET /api/payments/orders/{orderId}
-Lấy thanh toán theo ID
-GET /api/payments/{id}
-Cập nhật trạng thái thanh toán
-PUT /api/payments/{id}/status
-Shipping Address Management
-Shipping Address Controller
-Lấy danh sách địa chỉ của user
-GET /api/shipping-addresses/user/{userId}
-Thêm địa chỉ giao hàng
-POST /api/shipping-addresses
-Cập nhật địa chỉ giao hàng
-PUT /api/shipping-addresses/{id}
-Đặt địa chỉ mặc định
-PUT /api/shipping-addresses/{id}/set-default
-Xóa địa chỉ giao hàng
-DELETE /api/shipping-addresses/{id}
-Shop Management
-Shop Controller
-Lấy danh sách shop
-GET /api/shops
-Lấy shop theo ID
-GET /api/shops/{id}
-Lấy shop theo owner
-GET /api/shops/owner/{ownerId}
-Tạo shop
-POST /api/shops
-Cập nhật shop
-PUT /api/shops/{id}
-Xóa shop
-DELETE /api/shops/{id}
-Review Management
-Review Controller
-Tạo đánh giá sản phẩm
-POST /api/reviews
-Lấy đánh giá theo sản phẩm
-GET /api/reviews/products/{productId}
-Lấy đánh giá theo user
-GET /api/reviews/users/{userId}
-Cập nhật đánh giá
-PUT /api/reviews/{id}
-Xóa đánh giá
-DELETE /api/reviews/{id}
-Conversation Management
-Conversation Controller
-Tạo cuộc trò chuyện
-POST /api/conversations
-Lấy danh sách cuộc trò chuyện
-GET /api/conversations
-Lấy cuộc trò chuyện theo ID
-GET /api/conversations/{id}
-Lấy cuộc trò chuyện theo user
-GET /api/conversations/users/{userId}
-Lấy cuộc trò chuyện theo shop
-GET /api/conversations/shops/{shopId}
-Message Management
-Message Controller
-Gửi tin nhắn
-POST /api/messages
-Lấy tin nhắn theo conversation
-GET /api/messages/conversations/{conversationId}
-Đánh dấu đã đọc
-PUT /api/messages/conversations/{conversationId}/read
-Discount Management
-Discount Controller
-Tạo mã giảm giá
-POST /api/discounts
-Lấy mã giảm giá theo shop
-GET /api/discounts/shops/{shopId}
-Lấy mã giảm giá đang hoạt động
-GET /api/discounts/shops/{shopId}/active
-Cập nhật mã giảm giá
-PUT /api/discounts/{id}
-Xóa mã giảm giá
-DELETE /api/discounts/{id}
-Role Management
-Role Controller
-Lấy tất cả role
-GET /api/roles
-Lấy role theo ID
-GET /api/roles/{id}
-Lấy role theo tên
-GET /api/roles/name/{name}
-
-
-
-DTO Models Documentation
-User DTO
-UserRequestDto
-{
-  "username": "trunghieu",
-  "password": "123456",
-  "fullName": "Nguyen Trung Hieu",
-  "email": "hieu@gmail.com",
-  "phone": "0123456789",
-  "gender": "Male",
-  "dateOfBirth": "2004-01-01",
-  "avatar": "https://example.com/avatar.jpg"
-}
-Field	Type	Required	Description
-username	String	Yes	Tên đăng nhập
-password	String	Yes	Mật khẩu
-fullName	String	Yes	Họ và tên
-email	String	No	Email
-phone	String	No	Số điện thoại
-gender	String	No	Giới tính
-dateOfBirth	LocalDate	No	Ngày sinh
-avatar	String	No	URL ảnh đại diện
-UserResponseDto
-{
-  "id": 1,
-  "username": "trunghieu",
-  "fullName": "Nguyen Trung Hieu",
-  "phone": "0123456789",
-  "status": "ACTIVE",
-  "email": "hieu@gmail.com",
-  "avatar": "https://example.com/avatar.jpg",
-  "gender": "Male",
-  "dateOfBirth": "2004-01-01",
-  "createdAt": "2026-05-21T10:00:00",
-  "roleName": "CUSTOMER"
-}
-Authentication DTO
-AuthResponse
-{
-  "accessToken": "jwt_access_token",
-  "refreshToken": "jwt_refresh_token",
-  "user": {
-    "id": 1,
-    "username": "trunghieu",
-    "fullName": "Nguyen Trung Hieu"
-  }
-}
-Field	Type	Description
-accessToken	String	JWT access token
-refreshToken	String	JWT refresh token
-user	UserResponseDto	Thông tin người dùng
-Shop DTO
-ShopRequestDto
-{
-  "shopName": "Hieu Fashion",
-  "logo": "https://example.com/logo.jpg",
-  "phone": "0987654321",
-  "address": "Ha Noi",
-  "email": "shop@gmail.com",
-  "ownerId": 1
-}
-ShopResponseDto
-{
-  "id": 1,
-  "shopName": "Hieu Fashion",
-  "logo": "https://example.com/logo.jpg",
-  "phone": "0987654321",
-  "status": "ACTIVE",
-  "address": "Ha Noi",
-  "email": "shop@gmail.com",
-  "createdAt": "2026-05-21T10:00:00",
-  "ownerId": 1,
-  "ownerFullName": "Nguyen Trung Hieu"
-}
-Category DTO
-CategoryRequestDto
-{
-  "name": "Áo Thun"
-}
-CategoryResponseDto
-{
-  "id": 1,
-  "name": "Áo Thun"
-}
-Product Brand DTO
-ProductBrandRequestDto
-{
-  "name": "Nike",
-  "description": "Thương hiệu thời trang thể thao"
-}
-ProductBrandResponseDto
-{
-  "id": 1,
-  "name": "Nike",
-  "description": "Thương hiệu thời trang thể thao"
-}
-Product DTO
-ProductRequestDto
-{
-  "productName": "Áo Hoodie",
-  "productDetail": "Áo hoodie form rộng",
-  "price": 350000,
-  "shopId": 1,
-  "brandId": 1,
-  "categoryId": 1
-}
-Field	Type	Required	Description
-productName	String	Yes	Tên sản phẩm
-productDetail	String	No	Mô tả sản phẩm
-price	BigDecimal	Yes	Giá sản phẩm
-shopId	Long	Yes	ID shop
-brandId	Long	Yes	ID thương hiệu
-categoryId	Long	Yes	ID danh mục
-ProductResponseDto
-{
-  "id": 1,
-  "productName": "Áo Hoodie",
-  "productDetail": "Áo hoodie form rộng",
-  "rating": 4.8,
-  "status": "ACTIVE",
-  "price": 350000,
-  "shopId": 1,
-  "shopName": "Hieu Fashion",
-  "brandId": 1,
-  "brandName": "Nike",
-  "categoryId": 1,
-  "categoryName": "Áo"
-}
-Product Variant DTO
-ProductVariantRequestDto
-{
-  "productId": 1,
-  "size": "L",
-  "color": "Black",
-  "stock": 20
-}
-ProductVariantResponseDto
-{
-  "id": 1,
-  "productId": 1,
-  "size": "L",
-  "color": "Black",
-  "stock": 20
-}
-Cart DTO
-CartItemRequestDto
-{
-  "productVariantId": 1,
-  "quantity": 2
-}
-UpdateCartItemQuantityRequestDto
-{
-  "quantity": 5
-}
-UpdateCartItemVariantRequestDto
-{
-  "productVariantId": 3
-}
-CartItemResponseDto
-{
-  "id": 1,
-  "productVariantId": 1,
-  "productName": "Áo Hoodie",
-  "size": "L",
-  "color": "Black",
-  "quantity": 2,
-  "price": 350000,
-  "imageUrl": "https://example.com/product.jpg",
-  "subtotal": 700000
-}
-CartResponseDto
-{
-  "id": 1,
-  "userId": 1,
-  "updatedAt": "2026-05-21T10:00:00",
-  "cartItems": [],
-  "totalAmount": 700000
-}
-Shipping Address DTO
-ShippingAddressRequestDto
-{
-  "userId": 1,
-  "receiverName": "Nguyen Trung Hieu",
-  "phone": "0123456789",
-  "addressLine": "123 ABC",
-  "city": "Ha Noi",
-  "district": "Cau Giay",
-  "isDefault": true
-}
-ShippingAddressResponseDto
-{
-  "id": 1,
-  "userId": 1,
-  "receiverName": "Nguyen Trung Hieu",
-  "phone": "0123456789",
-  "addressLine": "123 ABC",
-  "city": "Ha Noi",
-  "district": "Cau Giay",
-  "isDefault": true
-}
-Order DTO
-OrderRequestDto
-{
-  "userId": 1,
-  "addressId": 1,
-  "receiverName": "Nguyen Trung Hieu",
-  "phone": "0123456789",
-  "addressLine": "123 ABC",
-  "city": "Ha Noi",
-  "district": "Cau Giay"
-}
-OrderResponseDto
-{
-  "id": 1,
-  "userId": 1,
-  "userFullName": "Nguyen Trung Hieu",
-  "totalPrice": 1000000,
-  "finalPrice": 900000,
-  "status": "PENDING",
-  "addressSnapshot": "123 ABC, Cau Giay, Ha Noi",
-  "createdAt": "2026-05-21T10:00:00",
-  "updatedAt": "2026-05-21T10:00:00"
-}
-Payment DTO
-PaymentRequestDto
-{
-  "method": "COD",
-  "status": "PENDING",
-  "transactionCode": "TRANS123456"
-}
-PaymentResponseDto
-{
-  "id": 1,
-  "amount": 900000,
-  "method": "COD",
-  "status": "PENDING",
-  "transactionCode": "TRANS123456",
-  "createdAt": "2026-05-21T10:00:00"
-}
-Review DTO
-ReviewRequestDto
-{
-  "userId": 1,
-  "productId": 1,
-  "orderItemId": 1,
-  "rating": 5,
-  "comment": "Sản phẩm rất đẹp"
-}
-ReviewResponseDto
-{
-  "id": 1,
-  "userId": 1,
-  "username": "trunghieu",
-  "productId": 1,
-  "productName": "Áo Hoodie",
-  "orderItemId": 1,
-  "rating": 5,
-  "comment": "Sản phẩm rất đẹp",
-  "createdAt": "2026-05-21T10:00:00"
-}
-Conversation DTO
-ConversationRequestDto
-{
-  "userId": 1,
-  "shopId": 1
-}
-ConversationResponseDto
-{
-  "id": 1,
-  "userId": 1,
-  "userName": "trunghieu",
-  "userAvatar": "https://example.com/avatar.jpg",
-  "shopId": 1,
-  "shopName": "Hieu Fashion",
-  "shopLogo": "https://example.com/logo.jpg",
-  "createdAt": "2026-05-21T10:00:00"
-}
-Message DTO
-MessageRequestDto
-{
-  "conversationId": 1,
-  "senderId": 1,
-  "content": "Xin chào shop"
-}
-MessageResponseDto
-{
-  "id": 1,
-  "conversationId": 1,
-  "senderId": 1,
-  "senderName": "Nguyen Trung Hieu",
-  "content": "Xin chào shop",
-  "isRead": false,
-  "createdAt": "2026-05-21T10:00:00"
-}
-Discount DTO
-DiscountRequestDto
-{
-  "shopId": 1,
-  "discountType": "PERCENT",
-  "discountValue": 10,
-  "startDate": "2026-05-01T00:00:00",
-  "endDate": "2026-05-30T23:59:59",
-  "status": "ACTIVE",
-  "minOrderValue": 500000,
-  "productIds": [1, 2, 3]
-}
-DiscountResponseDto
-{
-  "id": 1,
-  "shopId": 1,
-  "discountType": "PERCENT",
-  "discountValue": 10,
-  "startDate": "2026-05-01T00:00:00",
-  "endDate": "2026-05-30T23:59:59",
-  "status": "ACTIVE",
-  "minOrderValue": 500000
-}
-Role DTO
-RoleResponseDto
-{
-  "id": 1,
-  "name": "ADMIN"
-}
-Order Item DTO
-OrderItemResponseDto
-{
-  "id": 1,
-  "productVariantId": 1,
-  "productName": "Áo Hoodie",
-  "productImage": "https://example.com/product.jpg",
-  "size": "L",
-  "color": "Black",
-  "quantity": 2,
-  "price": 350000
-}
-Order Shop DTO
-OrderShopResponseDto
-{
-  "id": 1,
-  "orderId": 1,
-  "shopId": 1,
-  "shopName": "Hieu Fashion",
-  "totalPrice": 1000000,
-  "finalPrice": 900000,
-  "discountId": 1,
-  "addressSnapshot": "123 ABC, Cau Giay, Ha Noi",
-  "status": "PENDING",
-  "orderItems": [],
-  "shipping": {}
-}
-Order Shipping DTO
-OrderShippingRequestDto
-{
-  "shippingStatus": "DELIVERING",
-  "trackingCode": "GHN123456"
-}
-OrderShippingResponseDto
-{
-  "id": 1,
-  "addressSnapshot": "123 ABC, Cau Giay, Ha Noi",
-  "shippingStatus": "DELIVERING",
-  "trackingCode": "GHN123456"
 }

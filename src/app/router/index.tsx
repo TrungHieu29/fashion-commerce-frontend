@@ -10,6 +10,7 @@ import RegisterSellerPage from '@/features/shop/pages/register-seller-page';
 import ShopProductsPage from '@/features/shop/pages/shop-products-page';
 import AddProductPage from '@/features/shop/pages/add-product-page';
 import EditProductPage from '@/features/shop/pages/edit-product-page';
+import DiscountManagementPage from '@/features/discount/pages/discount-management-page';
 
 import ProductsPage from '@/features/product/pages/products-page.tsx';
 
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
             {
                 path: '/my-shop/products/edit/:id',
                 element: <EditProductPage />,
+            },
+            {
+                path: '/my-shop/discounts',
+                element: <DiscountManagementPage />,
             },
         ],
     },

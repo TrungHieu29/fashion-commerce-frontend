@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useMyShop } from '../hooks/use-shop';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProductsByShop, deleteProduct } from '@/features/product/api/product.api';
@@ -13,17 +13,26 @@ const ShopProductsPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const { data: products, isLoading } = useQuery({
-        queryKey: ['shop-products', shop?.id],
+    const [page, setPage] = useState(0);
+    const pageSize = 10;
+
+    const { data: productPage, isLoading } = useQuery({
+        queryKey: ['shop-products', shop?.id, page],
         queryFn: async () => {
-            const data = await getProductsByShop(shop!.id);
-            // Xử lý trường hợp trả về mảng trực tiếp hoặc đối tượng phân trang (có thuộc tính content)
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.content)) return data.content;
-            return [];
+            const data = await getProductsByShop(shop!.id, page, pageSize);
+            return data;
         },
         enabled: !!shop?.id
     });
+
+    // Sắp xếp sản phẩm mới nhất lên đầu
+    const sortedProducts = useMemo(() => {
+        const content = Array.isArray(productPage) ? productPage : productPage?.content;
+        if (!content) return [];
+        return [...content].sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+    }, [productPage]);
 
     // Mutation xóa sản phẩm
     const deleteMutation = useMutation({
@@ -76,14 +85,14 @@ const ShopProductsPage = () => {
                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Sản phẩm</th>
                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Phân loại</th>
                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Kho hàng (Size/Color/Stock)</th>
-                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Giá niêm yết</th>
+                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Giá (Gốc / Hiện tại)</th>
                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Trạng thái</th>
                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#6B7280] text-right">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB]">
-                        {Array.isArray(products) && products.length > 0 ? (
-                            products.map((product: ProductResponse) => (
+                        {sortedProducts.length > 0 ? (
+                            sortedProducts.map((product: ProductResponse) => (
                                 <tr key={product.id} className="hover:bg-[#F9FAFB]/30 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -110,7 +119,14 @@ const ShopProductsPage = () => {
                                     <td className="px-6 py-4">
                                         <VariantCell productId={product.id} />
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-[#0F0F0F] text-[14px]">{product.price?.toLocaleString()}đ</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-gray-400 line-through">{product.originalPrice?.toLocaleString()}đ</span>
+                                            <span className="font-black text-[#111111] text-[14px]">
+                                                {product.finalPrice?.toLocaleString()}đ
+                                            </span>
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-3 py-1 text-[11px] font-extrabold rounded-full border ${product.status === 'ACTIVE'
                                             ? 'bg-green-50 text-green-600 border-green-100'
@@ -148,6 +164,31 @@ const ShopProductsPage = () => {
                         )}
                     </tbody>
                 </table>
+
+                {/* Pagination Controls */}
+                {productPage && !Array.isArray(productPage) && productPage.totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-4 py-6 border-t border-[#E5E7EB] bg-[#FAFAFA]">
+                        <button
+                            disabled={page === 0}
+                            onClick={() => setPage(old => Math.max(0, old - 1))}
+                            className="px-4 py-2 text-sm font-bold text-[#6B7280] bg-white border border-[#E5E7EB] rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all"
+                        >
+                            Trang trước
+                        </button>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-[#111111]">Trang {page + 1}</span>
+                            <span className="text-sm text-[#9CA3AF]">/</span>
+                            <span className="text-sm text-[#9CA3AF]">{productPage.totalPages}</span>
+                        </div>
+                        <button
+                            disabled={page >= productPage.totalPages - 1}
+                            onClick={() => setPage(old => old + 1)}
+                            className="px-4 py-2 text-sm font-bold text-[#6B7280] bg-white border border-[#E5E7EB] rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all"
+                        >
+                            Trang sau
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

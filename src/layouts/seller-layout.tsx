@@ -12,7 +12,8 @@ import {
     Bell,
     UserCircle,
     ChevronDown,
-    Home
+    Home,
+    Tag // Thêm icon Tag vào đây
 } from 'lucide-react';
 
 const SellerLayout = () => {
@@ -37,6 +38,10 @@ const SellerLayout = () => {
             items: [
                 { label: 'Tất cả sản phẩm', icon: <ShoppingBag size={18} />, to: '/my-shop/products', active: location.pathname === '/my-shop/products' },
                 { label: 'Thêm sản phẩm', icon: <PackagePlus size={18} />, to: '/my-shop/products/add', active: location.pathname === '/my-shop/products/add' },
+                {
+                    label: 'Quản lý giảm giá', icon: <Tag size={18} />, to: '/my-shop/discounts',
+                    active: location.pathname === '/my-shop/discounts'
+                },
             ]
         },
         {

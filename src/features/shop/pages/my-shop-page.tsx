@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMyShop, useCreateShop, useUpdateShop, useDeleteShop } from '../hooks/use-shop';
-import { Edit, Trash2, Store, X, Phone, Mail, MapPin, Calendar, User, AlertCircle, ShoppingBag, Eye, DollarSign, Package } from 'lucide-react';
+import { Edit, Trash2, Store, X, Phone, Mail, MapPin, Calendar, User, AlertCircle, Eye, DollarSign, Package, Tag, ArrowRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { shopSchema } from '../schemas/shop.schema';
@@ -8,9 +8,11 @@ import type { ShopResponse } from '../types/shop.types';
 import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { getProductsByShop } from '@/features/product/api/product.api';
+import { useNavigate } from 'react-router-dom';
 
 const MyShopPage = () => {
     const { data: myShop, isLoading, isError } = useMyShop();
+    const navigate = useNavigate();
     const user = useAuthStore(state => state.user);
 
     // Lấy danh sách sản phẩm để đếm số lượng thực tế

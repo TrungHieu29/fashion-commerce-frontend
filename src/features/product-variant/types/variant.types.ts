@@ -12,7 +12,15 @@ export interface ProductVariantResponse {
     sku: string;
 }
 
+export interface ProductImageResponse {
+    id: number;
+    productId: number;
+    color: string;
+    imageUrl: string;
+}
+
 export interface ProductDetailResponse extends ProductResponse {
     // Thông tin chi tiết sẽ bao gồm một danh sách các biến thể
     variants: ProductVariantResponse[];
+    images?: ProductImageResponse[];
 }

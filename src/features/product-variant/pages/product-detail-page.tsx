@@ -4,7 +4,8 @@ import {
     ChevronLeft,
     Star,
     ShoppingCart,
-    ShieldCheck
+    ShieldCheck,
+    Package // Thêm icon Package vào đây
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -12,6 +13,9 @@ import { toast } from 'sonner';
 import { useProductDetail } from '../hooks/use-variant';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAddToCart } from '@/features/cart/hooks/use-cart';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/axios';
+import type { ProductImageResponse } from '../types/variant.types';
 
 const ProductDetailPage = () => {
     const { id } = useParams();
@@ -24,6 +28,16 @@ const ProductDetailPage = () => {
 
     const { data: product, isLoading, isError } =
         useProductDetail(id);
+
+    // Lấy danh sách ảnh theo sản phẩm
+    const { data: productImages } = useQuery<ProductImageResponse[]>({
+        queryKey: ['product-images', id],
+        queryFn: async () => {
+            const res = await api.get(`/api/product-images/product/${id}`);
+            return res.data;
+        },
+        enabled: !!id
+    });
 
     const { mutate: addToCart, isPending: isAdding } =
         useAddToCart();
@@ -40,6 +54,8 @@ const ProductDetailPage = () => {
 
     const [quantity, setQuantity] = useState(1);
 
+    const [mainImage, setMainImage] = useState<string | null>(null);
+
     // =========================
     // RESET QUANTITY
     // =========================
@@ -48,6 +64,23 @@ const ProductDetailPage = () => {
     useEffect(() => {
         setQuantity(1);
     }, [selectedSize, selectedColor]);
+
+    // =========================
+    // CẬP NHẬT ẢNH THEO MÀU
+    // =========================
+    useEffect(() => {
+        if (selectedColor && productImages) {
+            const colorImage = productImages.find(img => img.color === selectedColor);
+            if (colorImage) {
+                setMainImage(colorImage.imageUrl);
+            }
+        } else if (productImages && productImages.length > 0) {
+            // Hiển thị ảnh đầu tiên trong danh sách nếu chưa chọn màu
+            setMainImage(productImages[0].imageUrl);
+        } else if (product?.imageUrl) {
+            setMainImage(product.imageUrl);
+        }
+    }, [selectedColor, productImages, product]);
 
     // =========================
     // LOADING
@@ -118,10 +151,17 @@ const ProductDetailPage = () => {
         ? Number(selectedVariant.stock) <= 0
         : false;
 
-    // Giá
-    const currentPrice =
-        product.price +
-        (selectedVariant?.priceAdjustment || 0);
+    // Logic hiển thị Badge giảm giá
+    const renderDiscountBadge = () => {
+        if (!product.discountAmount || product.discountAmount <= 0) return null;
+
+        const percent = Math.round((product.discountAmount / product.originalPrice) * 100);
+        return (
+            <span className="bg-red-50 text-red-600 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-tight">
+                {percent > 0 ? `-${percent}%` : `Giảm ${(product.discountAmount / 1000).toLocaleString()}K`}
+            </span>
+        );
+    };
 
     // =========================
     // TOGGLE
@@ -196,10 +236,15 @@ const ProductDetailPage = () => {
 
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
                 {/* IMAGE */}
-                <div className="aspect-square rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400">
-                    <span className="text-xl font-medium uppercase tracking-widest">
-                        Product Image
-                    </span>
+                <div className="aspect-square rounded-3xl bg-[#F9FAFB] border border-[#E5E7EB] overflow-hidden group">
+                    {mainImage ? (
+                        <img src={mainImage} alt={product.productName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-[#9CA3AF] space-y-2">
+                            <Package size={48} strokeWidth={1} />
+                            <span className="text-xs font-bold uppercase tracking-widest">No Image Available</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* INFO */}
@@ -227,17 +272,21 @@ const ProductDetailPage = () => {
 
                     {/* PRICE */}
                     <div className="mt-4 flex items-center gap-4">
-                        <span className="text-2xl font-extrabold text-blue-600">
-                            {currentPrice.toLocaleString()}
-                            đ
-                        </span>
+                        <div className="flex flex-col">
+                            {product.discountAmount > 0 && (
+                                <span className="text-sm text-gray-400 line-through decoration-gray-300 font-medium">
+                                    {product.originalPrice.toLocaleString()}đ
+                                </span>
+                            )}
+                            <span className="text-3xl font-black text-[#111111] tracking-tight">
+                                {product.finalPrice.toLocaleString()}đ
+                            </span>
+                        </div>
+
+                        {renderDiscountBadge()}
 
                         <div className="flex items-center gap-1 font-bold text-amber-500">
-                            <Star
-                                size={18}
-                                fill="currentColor"
-                            />
-
+                            <Star size={18} fill="currentColor" />
                             {product.rating}
                         </div>
                     </div>

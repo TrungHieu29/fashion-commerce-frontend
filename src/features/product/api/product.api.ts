@@ -1,12 +1,15 @@
 import { api } from '@/lib/axios';
 
-export const getProductsByShop = async (shopId: number) => {
-    const response = await api.get(`/api/products/shop/${shopId}`);
+export const getProductsByShop = async (shopId: number, page: number = 0,
+    size: number = 10) => {
+    const response = await api.get(`/api/products/shop/${shopId}`, {
+        params: { page, size }
+    });
     return response.data;
 };
 
-export const getProducts = async () => {
-    const response = await api.get('/api/products');
+export const getProducts = async (params?: any) => {
+    const response = await api.get('/api/products', { params });
     return response.data;
 };
 

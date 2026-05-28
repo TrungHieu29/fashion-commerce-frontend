@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { Trash2, Save, ArrowLeft, Loader2, Plus, Package } from 'lucide-react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { Trash2, Save, ArrowLeft, Loader2, Plus, Package, UploadCloud } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { updateProduct } from '@/features/product/api/product.api';
 import { useMyShop } from '../hooks/use-shop';
 import { api } from '@/lib/axios';
 import type { ProductVariantResponse } from '@/features/product-variant/types/variant.types';
+import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
 
 interface FormProductVariant extends Partial<Omit<ProductVariantResponse, 'productId' | 'priceAdjustment' | 'sku'>> {
     size: string;
@@ -30,11 +31,18 @@ const EditProductPage = () => {
     const queryClient = useQueryClient();
     const { data: shop } = useMyShop();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [newColorImages, setNewColorImages] = useState<Record<string, File>>({});
 
     // Sử dụng helper function hoặc hook thay vì api.get trực tiếp để thống nhất coding style
     const { data: product, isLoading: isLoadingProduct } = useQuery({
         queryKey: ['product', id],
         queryFn: () => api.get(`/api/products/${id}`).then(res => res.data),
+        enabled: !!id
+    });
+
+    const { data: currentImages, refetch: refetchImages } = useQuery<ProductImageResponse[]>({
+        queryKey: ['product-images', id],
+        queryFn: () => api.get(`/api/product-images/product/${id}`).then(res => res.data),
         enabled: !!id
     });
 
@@ -63,7 +71,7 @@ const EditProductPage = () => {
         }
     });
 
-    const { register, control, handleSubmit, reset, formState: { errors } } = useForm<ProductFormValues>({
+    const { register, control, handleSubmit, reset, watch, formState: { errors } } = useForm<ProductFormValues>({
         defaultValues: {
             productName: '',
             productDetail: '',
@@ -79,12 +87,38 @@ const EditProductPage = () => {
         name: "variants"
     });
 
+    const watchedVariants = useWatch({ control, name: 'variants' });
+    const uniqueColors = useMemo(() => {
+        const colorMap = new Map<string, string>(); // lowercase -> original
+
+        // Check variants hiện tại trong form
+        (watchedVariants || []).forEach(v => {
+            const trimmed = v.color?.trim();
+            if (trimmed) {
+                const lower = trimmed.toLowerCase();
+                if (!colorMap.has(lower)) colorMap.set(lower, trimmed);
+            }
+        });
+
+        // Check ảnh đã tồn tại để không làm mất ô hiển thị
+        (currentImages || []).forEach(img => {
+            const trimmed = img.color?.trim();
+            if (trimmed) {
+                const lower = trimmed.toLowerCase();
+                if (!colorMap.has(lower)) colorMap.set(lower, trimmed);
+            }
+        });
+
+        const result = Array.from(colorMap.values());
+        return result.length > 0 ? result : [''];
+    }, [watchedVariants, currentImages]);
+
     useEffect(() => {
         if (product && variants) {
             reset({
                 productName: product.productName,
                 productDetail: product.productDetail,
-                price: product.price,
+                price: product.originalPrice, // Sử dụng originalPrice để điền vào form
                 categoryId: product.categoryId.toString(),
                 brandId: product.brandId.toString(),
                 variants: (variants || []).map((v: ProductVariantResponse) => ({
@@ -103,9 +137,10 @@ const EditProductPage = () => {
         try {
             await updateProduct(Number(id), {
                 ...data,
-                shopId: shop.id,
-                categoryId: parseInt(data.categoryId),
-                brandId: parseInt(data.brandId),
+                shopId: shop.id, // Đảm bảo shopId được gửi
+                originalPrice: Number(data.price), // Gửi originalPrice từ form
+                categoryId: Number(data.categoryId), // Chuyển đổi sang số
+                brandId: Number(data.brandId),   // Chuyển đổi sang số
                 status: product.status || 'ACTIVE'
             });
 
@@ -130,7 +165,25 @@ const EditProductPage = () => {
                 return v.id ? api.put(`/api/product-variants/${v.id}`, payload) : api.post('/api/product-variants', payload);
             });
 
-            await Promise.all([...deletePromises, ...upsertPromises]);
+            // Xử lý upload ảnh mới và xóa ảnh cũ nếu ghi đè
+            const imageUploadPromises = Object.entries(newColorImages).map(async ([color, file]) => {
+                // Tìm xem màu này đã có ảnh chưa
+                const existingImg = currentImages?.find(img => img.color === color);
+                if (existingImg) {
+                    // Xóa ảnh cũ trước khi upload mới
+                    await api.delete(`/api/product-images/${existingImg.id}`);
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('productId', id!);
+                formData.append('color', color);
+                return api.post('/api/product-images/upload', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+            });
+
+            await Promise.all([...deletePromises, ...upsertPromises, ...imageUploadPromises]);
             toast.success('Cập nhật thành công!');
             queryClient.invalidateQueries({ queryKey: ['shop-products'] });
             navigate('/my-shop/products');
@@ -138,6 +191,17 @@ const EditProductPage = () => {
             toast.error('Lỗi: ' + (error.response?.data?.message || error.message));
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteImage = async (imageId: number) => {
+        if (!window.confirm('Xóa ảnh này?')) return;
+        try {
+            await api.delete(`/api/product-images/${imageId}`);
+            toast.success('Đã xóa ảnh');
+            refetchImages();
+        } catch (error) {
+            toast.error('Không thể xóa ảnh');
         }
     };
 
@@ -167,7 +231,7 @@ const EditProductPage = () => {
                         </div>
                         <div>
                             <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase tracking-wide">Giá bán (VNĐ)</label>
-                            <input type="number" {...register('price', { required: true })} className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl outline-none font-mono" />
+                            <input type="number" {...register('price', { required: true, valueAsNumber: true })} className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl outline-none font-mono" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -204,6 +268,54 @@ const EditProductPage = () => {
                                 <button type="button" onClick={() => remove(index)} className="p-2.5 text-red-400 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Quản lý Hình ảnh - Đưa xuống dưới */}
+                <div className="bg-white p-8 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-6">
+                    <h3 className="font-bold text-lg border-b pb-4">Hình ảnh sản phẩm</h3>
+                    <p className="text-xs text-[#9CA3AF] italic -mt-2">
+                        * Các ô upload ảnh sẽ tự động hiển thị dựa trên màu sắc bạn đã nhập trong phần Phân loại hàng.
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {uniqueColors.map(color => {
+                            const existingImage = currentImages?.find(img => img.color?.toLowerCase() === color.toLowerCase());
+                            const newFile = newColorImages[color];
+
+                            return (
+                                <div key={color} className="space-y-2">
+                                    <label className="block text-[11px] font-black text-[#9CA3AF] uppercase">{color || 'Ảnh chính'}</label>
+                                    <div className="relative aspect-square border-2 border-dashed border-[#E5E7EB] rounded-2xl flex flex-col items-center justify-center hover:border-[#111111] transition-all overflow-hidden group">
+                                        {newFile || existingImage ? (
+                                            <>
+                                                <img
+                                                    src={newFile ? URL.createObjectURL(newFile) : existingImage?.imageUrl}
+                                                    className="w-full h-full object-cover"
+                                                    alt=""
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => existingImage ? handleDeleteImage(existingImage.id) : setNewColorImages(prev => {
+                                                        const next = { ...prev };
+                                                        delete next[color];
+                                                        return next;
+                                                    })}
+                                                    className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <label className="cursor-pointer flex flex-col items-center">
+                                                <UploadCloud size={24} className="text-[#9CA3AF]" />
+                                                <span className="text-[10px] font-bold text-[#9CA3AF] mt-2 tracking-tighter">TẢI ẢNH LÊN</span>
+                                                <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && setNewColorImages(prev => ({ ...prev, [color]: e.target.files![0] }))} />
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
