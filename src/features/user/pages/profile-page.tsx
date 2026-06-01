@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useUserProfile, useAddresses, useUpdateProfile, useSetDefaultAddress, useDeleteAddress, useAddAddress } from '../hooks/use-user';
-import { User, MapPin, Phone, Mail, Calendar, Plus, Trash2, X, AlertCircle } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Calendar, Plus, Trash2, X, AlertCircle, Package, History } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, addressSchema } from '../schemas/profile.schema';
+import ProfileOrdersPage from '@/features/order/pages/profile-orders-page';
 
 const GENDER_LABELS: Record<string, string> = {
     MALE: 'Nam',
@@ -19,7 +21,13 @@ const ProfilePage = () => {
     const setDefault = useSetDefaultAddress();
     const deleteAddr = useDeleteAddress();
 
-    const [activeTab, setActiveTab] = useState<'info' | 'address'>('info');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = (searchParams.get('tab') as 'info' | 'address' | 'orders' | 'history') || 'info';
+
+    const setActiveTab = (tab: string) => {
+        setSearchParams({ tab });
+    };
+
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
 
@@ -50,6 +58,18 @@ const ProfilePage = () => {
                     >
                         <MapPin size={18} /> Địa chỉ giao hàng
                     </button>
+                    <button
+                        onClick={() => setActiveTab('orders')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'orders' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        <Package size={18} /> Đơn hàng
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        <History size={18} /> Lịch sử đơn hàng
+                    </button>
                 </div>
 
                 {/* Main Content */}
@@ -71,7 +91,7 @@ const ProfilePage = () => {
                                 Chỉnh sửa thông tin
                             </button>
                         </div>
-                    ) : (
+                    ) : activeTab === 'address' ? (
                         <div>
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold">Địa chỉ của tôi</h3>
@@ -111,6 +131,10 @@ const ProfilePage = () => {
                                 {addresses?.length === 0 && <p className="text-center text-gray-500 py-10">Bạn chưa có địa chỉ nào.</p>}
                             </div>
                         </div>
+                    ) : activeTab === 'orders' ? (
+                        <ProfileOrdersPage mode="ACTIVE" isNested />
+                    ) : (
+                        <ProfileOrdersPage mode="HISTORY" isNested />
                     )}
                 </div>
             </div>

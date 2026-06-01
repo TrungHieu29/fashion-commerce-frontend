@@ -19,7 +19,7 @@ const ShopProductsPage = () => {
     const { data: productPage, isLoading } = useQuery({
         queryKey: ['shop-products', shop?.id, page],
         queryFn: async () => {
-            const data = await getProductsByShop(shop!.id, page, pageSize);
+            const data = await getProductsByShop(shop!.id, page, pageSize, 'id,desc');
             return data;
         },
         enabled: !!shop?.id
@@ -29,9 +29,7 @@ const ShopProductsPage = () => {
     const sortedProducts = useMemo(() => {
         const content = Array.isArray(productPage) ? productPage : productPage?.content;
         if (!content) return [];
-        return [...content].sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        return [...content].sort((a, b) => b.id - a.id);
     }, [productPage]);
 
     // Mutation xóa sản phẩm

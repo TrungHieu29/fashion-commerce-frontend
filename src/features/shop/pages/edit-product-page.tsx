@@ -36,7 +36,7 @@ const EditProductPage = () => {
     // Sử dụng helper function hoặc hook thay vì api.get trực tiếp để thống nhất coding style
     const { data: product, isLoading: isLoadingProduct } = useQuery({
         queryKey: ['product', id],
-        queryFn: () => api.get(`/api/products/${id}`).then(res => res.data),
+        queryFn: () => api.get(`/api/products/${id}`, { params: { sort: 'id,desc' } }).then(res => res.data),
         enabled: !!id
     });
 
@@ -49,7 +49,7 @@ const EditProductPage = () => {
     const { data: variants, isLoading: isLoadingVariants } = useQuery({
         queryKey: ['product-variants', id],
         queryFn: async () => {
-            const res = await api.get(`/api/product-variants/product/${id}`);
+            const res = await api.get(`/api/product-variants/product/${id}`, { params: { sort: 'id,desc' } });
             return res.data;
         },
         enabled: !!id

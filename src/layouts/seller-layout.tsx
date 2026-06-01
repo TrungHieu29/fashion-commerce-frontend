@@ -13,7 +13,8 @@ import {
     UserCircle,
     ChevronDown,
     Home,
-    Tag // Thêm icon Tag vào đây
+    Tag, // Thêm icon Tag vào đây
+    Truck
 } from 'lucide-react';
 
 const SellerLayout = () => {
@@ -24,13 +25,13 @@ const SellerLayout = () => {
         {
             title: 'Vận chuyển',
             items: [
-                { label: 'Quản lý vận chuyển', icon: <ClipboardList size={18} />, to: '#' },
+                { label: 'Quản lý vận chuyển', icon: <Truck size={18} />, to: '/my-shop/shipping', active: location.pathname === '/my-shop/shipping' },
             ]
         },
         {
             title: 'Quản lý Đơn Hàng',
             items: [
-                { label: 'Tất cả đơn hàng', icon: <ClipboardList size={18} />, to: '#' },
+                { label: 'Tất cả đơn hàng', icon: <ClipboardList size={18} />, to: '/my-shop/orders', active: location.pathname === '/my-shop/orders' },
             ]
         },
         {

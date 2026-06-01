@@ -64,6 +64,9 @@ const DiscountManagementPage = () => {
                             </div>
 
                             <div className="space-y-1">
+                                {discount.code && (
+                                    <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1 bg-blue-50 w-fit px-2 py-0.5 rounded">Mã: {discount.code}</div>
+                                )}
                                 <h3 className="text-xl font-black text-[#111111]">
                                     Giảm {discount.discountType === 'FIXED'
                                         ? (discount.discountValue ?? 0).toLocaleString()

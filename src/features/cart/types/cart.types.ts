@@ -10,6 +10,8 @@ export interface CartItemResponse {
     price: number; // Đây là finalPrice tại thời điểm snapshot
     originalPrice?: number; // Giá gốc để hiển thị gạch ngang trong giỏ hàng
     subtotal: number; // Tổng tiền cho item này (price * quantity)
+    shopId: number;
+    shopName: string;
 }
 
 export interface CartResponse {

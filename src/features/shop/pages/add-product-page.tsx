@@ -95,7 +95,7 @@ const AddProductPage = () => {
             // 2. Tạo các biến thể cho sản phẩm đó
             const variantPromises = data.variants.map((v: any) =>
                 api.post('/api/product-variants', {
-                    productId: newProduct.id,
+                    productId: newProduct.id, // productId là số
                     size: v.size,
                     color: v.color,
                     stock: parseInt(v.stock)

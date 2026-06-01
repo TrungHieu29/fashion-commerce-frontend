@@ -1,9 +1,9 @@
 import { api } from '@/lib/axios';
 
 export const getProductsByShop = async (shopId: number, page: number = 0,
-    size: number = 10) => {
+    size: number = 10, sort: string = 'id,desc') => {
     const response = await api.get(`/api/products/shop/${shopId}`, {
-        params: { page, size }
+        params: { page, size, sort }
     });
     return response.data;
 };
