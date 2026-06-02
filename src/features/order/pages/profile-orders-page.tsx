@@ -7,29 +7,18 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 
-const ORDER_TABS = [
-    { id: 'ALL', label: 'Tất cả', status: undefined },
-    { id: 'PENDING', label: 'Chờ xác nhận', status: 'PENDING' },
-    { id: 'CONFIRMED', label: 'Đã xác nhận', status: 'CONFIRMED' },
-    { id: 'PROCESSING', label: 'Chờ giao hàng', status: 'PROCESSING' },
-    { id: 'SHIPPED', label: 'Đang giao', status: 'SHIPPED' },
-    { id: 'DELIVERED', label: 'Đã giao', status: 'DELIVERED' },
-    { id: 'COMPLETED', label: 'Hoàn thành', status: 'COMPLETED' },
-    { id: 'CANCELLED', label: 'Đã hủy', status: 'CANCELLED' },
-    { id: 'RETURN_REQUESTED', label: 'Chờ trả hàng', status: 'RETURN_REQUESTED' },
-    { id: 'RETURNED', label: 'Đã trả hàng', status: 'RETURNED' },
-];
-
 const ACTIVE_TABS = [
-    { id: 'PENDING', label: 'Chờ xác nhận', status: 'PENDING' },
-    { id: 'PROCESSING', label: 'Chờ giao hàng', status: 'PROCESSING' },
-    { id: 'SHIPPED', label: 'Đang giao', status: 'SHIPPED' },
-    { id: 'CANCELLED', label: 'Đã hủy', status: 'CANCELLED' },
-    { id: 'RETURNED', label: 'Trả hàng', status: 'RETURNED' },
+    { id: 'WAITING', label: 'Chờ xác nhận', statuses: ['PENDING', 'CONFIRMED'] },
+    { id: 'PROCESSING', label: 'Chờ giao hàng', statuses: ['PROCESSING'] },
+    { id: 'SHIPPING', label: 'Đang giao', statuses: ['SHIPPED'] },
+    { id: 'DELIVERED', label: 'Đã giao', statuses: ['DELIVERED'] },
+    { id: 'RETURNS_REQUEST', label: 'Trả hàng', statuses: ['RETURN_REQUESTED'] },
 ];
 
 const HISTORY_TABS = [
-    { id: 'COMPLETED', label: 'Lịch sử mua hàng', status: 'COMPLETED' },
+    { id: 'COMPLETED', label: 'Đã hoàn thành', statuses: ['COMPLETED'] },
+    { id: 'CANCELLED', label: 'Đơn đã hủy', statuses: ['CANCELLED'] },
+    { id: 'RETURNED', label: 'Đã trả hàng', statuses: ['RETURNED'] },
 ];
 
 interface ProfileOrdersPageProps {
@@ -44,7 +33,7 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
     const tabs = useMemo(() => {
         if (mode === 'ACTIVE') return ACTIVE_TABS;
         if (mode === 'HISTORY') return HISTORY_TABS;
-        return ORDER_TABS;
+        return [...ACTIVE_TABS, ...HISTORY_TABS];
     }, [mode]);
 
     const [activeTab, setActiveTab] = useState(tabs[0].id);
@@ -54,17 +43,13 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
         setPage(0);
     }, [mode, tabs]);
 
-    const currentStatus = useMemo(() => tabs.find(t => t.id === activeTab)?.status, [activeTab, tabs]);
+    const currentStatuses = useMemo(() => tabs.find(t => t.id === activeTab)?.statuses || [], [activeTab, tabs]);
 
-    const { data: orderPage, isLoading } = useUserOrders(user?.id || 0, page, 10, currentStatus);
+    const { data: orderPage, isLoading } = useUserOrders(user?.id || 0, page, 10, currentStatuses);
 
-    // Logic xử lý dữ liệu: Phải đặt SAU khi gọi useUserOrders
+    // Backend đã xử lý sắp xếp id,desc trên Database. Frontend chỉ việc hiển thị content.
     const processedOrders = useMemo(() => {
-        if (!orderPage?.content) return [];
-        let content = [...orderPage.content];
-
-        // Sắp xếp ID giảm dần (Mới nhất lên đầu)
-        return content.sort((a: any, b: any) => b.id - a.id);
+        return orderPage?.content || [];
     }, [orderPage]);
 
     const getStatusInfo = (status: string) => {
@@ -126,8 +111,8 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
                                     </div>
                                 </div>
 
-                                {/* Hiển thị chi tiết đơn hàng thay vì tóm tắt */}
-                                <OrderItemsList orderId={order.id} />
+                                {/* Backend đã lọc orderShops theo tab, chỉ việc hiển thị */}
+                                <OrderShopsList shops={order.orderShops || []} />
 
                                 <div className="bg-gray-50/50 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
@@ -185,40 +170,28 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
         </div>
     );
 };
-
-// Component hiển thị chi tiết các item trong đơn hàng
-const OrderItemsList = ({ orderId }: { orderId: number }) => {
+const OrderShopsList = ({ shops }: { shops: any[] }) => {
     const confirmDeliveryMutation = useConfirmDelivery();
     const requestReturnMutation = useRequestReturn();
     const cancelOrderShopMutation = useCancelOrderShop();
 
-    // Dùng API lấy danh sách OrderShop của đơn hàng này để lấy Item chi tiết
-    const { data: orderShops, isLoading } = useQuery({
-        queryKey: ['order-shops-detail', orderId],
-        queryFn: () => api.get(`/api/order-shops/order/${orderId}`).then(res => res.data)
-    });
-
-    if (isLoading) return <div className="p-6 border-b border-gray-50"><Loader2 className="animate-spin text-gray-200 mx-auto" size={20} /></div>;
-
-    const shopsArray = Array.isArray(orderShops) ? orderShops : (orderShops?.content || []);
-
-    if (shopsArray.length === 0) return <p className="p-6 text-center text-gray-400 italic text-sm">Không có dữ liệu chi tiết sản phẩm.</p>;
+    if (shops.length === 0) return null;
 
     return (
         <div className="divide-y divide-gray-100 border-b border-gray-50">
-            {shopsArray.map((shop: any) => (
+            {shops.map((shop: any) => (
                 <div key={shop.id} className="p-6 space-y-4">
-                    <div className="flex items-center gap-2 text-[11px] font-black text-blue-600 uppercase tracking-widest">
-                        <ShoppingBag size={12} /> {shop.shopName}
-                        <div className="ml-auto flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-full border text-[9px] ${shop.status === 'DELIVERED' ? 'text-green-600 border-green-100 bg-green-50' :
-                                shop.status === 'COMPLETED' ? 'text-emerald-600 border-emerald-100 bg-emerald-50' :
-                                    shop.status === 'CANCELLED' ? 'text-red-600 border-red-100 bg-red-50' :
-                                        'text-blue-600 border-blue-100 bg-blue-50'
-                                }`}>
-                                {shop.status}
-                            </span>
+                    <div className="flex items-center justify-between bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-2">
+                            <ShoppingBag size={14} className="text-blue-600" />
+                            <span className="text-xs font-black text-gray-800 uppercase tracking-tight">{shop.shopName}</span>
                         </div>
+                        <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${shop.status === 'DELIVERED' || shop.status === 'COMPLETED' ? 'text-green-600 border-green-100 bg-green-50' :
+                            shop.status === 'CANCELLED' ? 'text-red-600 border-red-100 bg-red-50' :
+                                'text-blue-600 border-blue-100 bg-blue-50'
+                            }`}>
+                            {shop.status}
+                        </span>
                     </div>
                     {shop.orderItems?.map((item: any) => (
                         <div key={item.id} className="flex items-center gap-4">

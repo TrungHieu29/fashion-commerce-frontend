@@ -35,10 +35,10 @@ export const useCreateOrder = () => {
 };
 
 // Hook lấy lịch sử đơn hàng của User
-export const useUserOrders = (userId: number, page: number = 0, size: number = 10, status?: string) => {
+export const useUserOrders = (userId: number, page: number = 0, size: number = 10, shopStatuses?: string[]) => {
     return useQuery({
-        queryKey: ['user-orders', userId, page, status],
-        queryFn: () => getUserOrders(userId, page, size, status),
+        queryKey: ['user-orders', userId, page, shopStatuses],
+        queryFn: () => getUserOrders(userId, page, size, shopStatuses),
         enabled: !!userId,
     });
 };

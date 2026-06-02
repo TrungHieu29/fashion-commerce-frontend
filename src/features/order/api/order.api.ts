@@ -27,13 +27,13 @@ export const applyVoucher = async (data: ApplyVoucherRequest): Promise<number> =
 };
 
 // Khách hàng xem lịch sử đơn hàng
-export const getUserOrders = async (userId: number, page: number = 0, size: number = 10, status?: string): Promise<PageOrderResponse> => {
+export const getUserOrders = async (userId: number, page: number = 0, size: number = 10, shopStatuses?: string[]): Promise<PageOrderResponse> => {
     const response = await api.get(`/api/orders/user/${userId}`, {
         params: {
             page,
             size,
             sort: 'id,desc',
-            ...(status && status !== 'ALL' && { status })
+            shopStatuses: shopStatuses && shopStatuses.length > 0 ? shopStatuses.join(',') : undefined
         }
     });
     return response.data;

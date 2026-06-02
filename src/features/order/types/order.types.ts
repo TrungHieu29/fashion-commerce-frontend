@@ -16,7 +16,7 @@ export interface OrderResponse {
     userFullName: string;
     totalPrice: number;
     finalPrice: number;
-    status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
+    orderShops?: OrderShopResponse[];
     addressSnapshot: string;
     createdAt: string;
     updatedAt: string;

@@ -79,8 +79,12 @@ export const router = createBrowserRouter([
                 element: <DiscountManagementPage />,
             },
             {
-                path: '/my-shop/orders',
-                element: <ShopOrdersPage />,
+                path: '/my-shop/orders/confirm',
+                element: <ShopOrdersPage mode="confirm" />,
+            },
+            {
+                path: '/my-shop/orders/history',
+                element: <ShopOrdersPage mode="history" />,
             },
             {
                 path: '/my-shop/shipping',

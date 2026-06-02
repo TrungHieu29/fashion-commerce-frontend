@@ -14,7 +14,8 @@ import {
     ChevronDown,
     Home,
     Tag, // Thêm icon Tag vào đây
-    Truck
+    Truck,
+    History
 } from 'lucide-react';
 
 const SellerLayout = () => {
@@ -31,7 +32,8 @@ const SellerLayout = () => {
         {
             title: 'Quản lý Đơn Hàng',
             items: [
-                { label: 'Tất cả đơn hàng', icon: <ClipboardList size={18} />, to: '/my-shop/orders', active: location.pathname === '/my-shop/orders' },
+                { label: 'Xác nhận đơn hàng', icon: <ClipboardList size={18} />, to: '/my-shop/orders/confirm', active: location.pathname === '/my-shop/orders/confirm' },
+                { label: 'Lịch sử đơn hàng', icon: <History size={18} />, to: '/my-shop/orders/history', active: location.pathname === '/my-shop/orders/history' },
             ]
         },
         {

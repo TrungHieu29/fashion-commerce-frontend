@@ -7,16 +7,15 @@ import { toast } from 'sonner';
 const ShopShippingPage = () => {
     const { data: shop } = useMyShop();
     const [page, setPage] = useState(0);
-    // Trang này tập trung vào 2 trạng thái chính của vận chuyển
-    const [statusFilter, setStatusFilter] = useState<string>('PROCESSING');
+    // Mặc định hiển thị các đơn vừa được chuyển sang từ trang Xác nhận đơn hàng (CONFIRMED)
+    const [statusFilter, setStatusFilter] = useState<string>('CONFIRMED');
 
-    const { data: orderPage, isLoading } = useShopOrders(shop?.id || 0, page, 10, statusFilter === 'ALL' ? undefined : statusFilter);
+    const { data: orderPage, isLoading } = useShopOrders(shop?.id || 0, page, 10, statusFilter);
     const shippingMutation = useUpdateOrderShipping();
 
-    // Sắp xếp vận đơn mới nhất lên đầu
+    // Sử dụng trực tiếp dữ liệu từ Backend để đảm bảo tính nhất quán của phân trang toàn cục
     const sortedShippingOrders = React.useMemo(() => {
-        if (!orderPage?.content) return [];
-        return [...orderPage.content].sort((a, b) => b.id - a.id);
+        return orderPage?.content || [];
     }, [orderPage]);
 
     const handleUpdateShipping = async (orderShop: any, nextStatus: string) => {
@@ -25,7 +24,8 @@ const ShopShippingPage = () => {
 
         let trackingCode = orderShop.shipping?.trackingCode;
 
-        if (nextStatus === 'SHIPPED') {
+        // Yêu cầu nhập Tracking Code khi bắt đầu chuẩn bị hàng (Step D trong flow Backend)
+        if (nextStatus === 'PROCESSING') {
             const code = window.prompt('Nhập mã vận đơn (Tracking Code) cho đơn hàng này:', trackingCode || '');
             if (!code) return;
             trackingCode = code;
@@ -56,7 +56,7 @@ const ShopShippingPage = () => {
                 </div>
 
                 <div className="flex gap-2">
-                    {['PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURN_REQUESTED', 'RETURNED'].map((status) => (
+                    {['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURN_REQUESTED', 'RETURNED'].map((status) => (
                         <button
                             key={status}
                             onClick={() => { setStatusFilter(status); setPage(0); }}
@@ -65,10 +65,11 @@ const ShopShippingPage = () => {
                                 : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                 }`}
                         >
-                            {status === 'PROCESSING' ? 'Chờ lấy hàng' :
-                                status === 'SHIPPED' ? 'Đang giao' :
-                                    status === 'DELIVERED' ? 'Đã giao' :
-                                        status === 'RETURN_REQUESTED' ? 'Yêu cầu trả hàng' : 'Đã trả hàng'}
+                            {status === 'CONFIRMED' ? 'Chờ giao hàng' :
+                                status === 'PROCESSING' ? 'Đang xử lý' :
+                                    status === 'SHIPPED' ? 'Đang giao' :
+                                        status === 'DELIVERED' ? 'Đã giao' :
+                                            status === 'RETURN_REQUESTED' ? 'Yêu cầu trả hàng' : 'Đã trả hàng'}
                         </button>
                     ))}
                 </div>
@@ -123,6 +124,14 @@ const ShopShippingPage = () => {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
+                                        {statusFilter === 'CONFIRMED' && (
+                                            <button
+                                                onClick={() => handleUpdateShipping(orderShop, 'PROCESSING')}
+                                                className="px-4 py-2 bg-[#111111] text-white text-[11px] font-bold rounded-xl hover:bg-black shadow-sm"
+                                            >
+                                                Giao hàng
+                                            </button>
+                                        )}
                                         {statusFilter === 'PROCESSING' && (
                                             <button
                                                 onClick={() => handleUpdateShipping(orderShop, 'SHIPPED')}
@@ -156,17 +165,19 @@ const ShopShippingPage = () => {
                                     </td>
                                 </tr>
                             ))}
+                            {(!isLoading && sortedShippingOrders.length === 0) && (
+                                <tr>
+                                    <td colSpan={5} className="py-20 text-center">
+                                        <div className="flex flex-col items-center justify-center gap-2 text-[#9CA3AF] italic text-sm mx-auto">
+                                            <ClipboardList size={40} className="text-gray-200 mx-auto" />
+                                            <p>Không có vận đơn nào ở trạng thái này.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
-
-                {(!orderPage?.content || orderPage.content.length === 0) && (
-                    <div className="py-20 text-center flex flex-col items-center gap-2">
-                        <ClipboardList size={40} className="text-gray-200" />
-                        <p className="text-gray-400 text-sm italic">Không có vận đơn nào ở trạng thái này.</p>
-                    </div>
-                )}
-
                 {orderPage && orderPage.totalPages > 1 && (
                     <div className="p-4 bg-gray-50 border-t flex justify-center gap-2">
                         <button
