@@ -1,10 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUserOrders, useOrderDetails, useConfirmDelivery, useRequestReturn, useCancelOrderShop } from '../hooks/use-order';
-import { Package, Clock, CheckCircle, Truck, XCircle, ChevronRight, Loader2, Star, RefreshCcw, ShoppingBag } from 'lucide-react';
+import { Package, Clock, CheckCircle, Truck, XCircle, ChevronRight, Loader2, Star, RefreshCcw, ShoppingBag, Trash2, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getUserReviews } from '@/features/review/api/review.api';
 import { useQuery } from '@tanstack/react-query';
+import {
+    useCreateReview, useUpdateReview,
+    useDeleteReview
+} from '@/features/review/hooks/use-review';
 import { api } from '@/lib/axios';
 
 const ACTIVE_TABS = [
@@ -46,6 +51,20 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
     const currentStatuses = useMemo(() => tabs.find(t => t.id === activeTab)?.statuses || [], [activeTab, tabs]);
 
     const { data: orderPage, isLoading } = useUserOrders(user?.id || 0, page, 10, currentStatuses);
+    const { data: userReviews } = useQuery({
+        queryKey: ['user-reviews', user?.id],
+        queryFn: async () => {
+            const res = await api.get(`/api/reviews/users/${user?.id}`, {
+                params: {
+                    page: 0,
+                    size: 100
+                }
+            });
+
+            return res.data;
+        },
+        enabled: !!user?.id
+    });
 
     // Backend đã xử lý sắp xếp id,desc trên Database. Frontend chỉ việc hiển thị content.
     const processedOrders = useMemo(() => {
@@ -112,8 +131,10 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
                                 </div>
 
                                 {/* Backend đã lọc orderShops theo tab, chỉ việc hiển thị */}
-                                <OrderShopsList shops={order.orderShops || []} />
-
+                                <OrderShopsList
+                                    shops={order.orderShops || []}
+                                    reviews={userReviews?.content || []}
+                                />
                                 <div className="bg-gray-50/50 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
                                         <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1">Địa chỉ giao hàng</p>
@@ -170,77 +191,296 @@ const ProfileOrdersPage = ({ mode = 'ALL', isNested = false }: ProfileOrdersPage
         </div>
     );
 };
-const OrderShopsList = ({ shops }: { shops: any[] }) => {
+const OrderShopsList = ({ shops, reviews }: { shops: any[], reviews: any[] }) => {
     const confirmDeliveryMutation = useConfirmDelivery();
     const requestReturnMutation = useRequestReturn();
     const cancelOrderShopMutation = useCancelOrderShop();
+    const updateReviewMutation = useUpdateReview();
+    const deleteReviewMutation = useDeleteReview();
+    const [editingReview, setEditingReview] = useState<any>(null);
+    const [reviewingItem, setReviewingItem] = useState<{ productId: number, orderItemId: number, productName: string } | null>(null);
 
     if (shops.length === 0) return null;
 
     return (
-        <div className="divide-y divide-gray-100 border-b border-gray-50">
-            {shops.map((shop: any) => (
-                <div key={shop.id} className="p-6 space-y-4">
-                    <div className="flex items-center justify-between bg-gray-50/50 p-3 rounded-xl border border-gray-100">
-                        <div className="flex items-center gap-2">
-                            <ShoppingBag size={14} className="text-blue-600" />
-                            <span className="text-xs font-black text-gray-800 uppercase tracking-tight">{shop.shopName}</span>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${shop.status === 'DELIVERED' || shop.status === 'COMPLETED' ? 'text-green-600 border-green-100 bg-green-50' :
-                            shop.status === 'CANCELLED' ? 'text-red-600 border-red-100 bg-red-50' :
-                                'text-blue-600 border-blue-100 bg-blue-50'
-                            }`}>
-                            {shop.status}
-                        </span>
-                    </div>
-                    {shop.orderItems?.map((item: any) => (
-                        <div key={item.id} className="flex items-center gap-4">
-                            <img src={item.productImage} alt="" className="w-12 h-12 rounded-lg object-cover border border-gray-100" />
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-gray-900">{item.productName}</p>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase">{item.color} / {item.size}</p>
+        <>
+            <div className="divide-y divide-gray-100 border-b border-gray-50">
+                {shops.map((shop: any) => (
+                    <div key={shop.id} className="p-6 space-y-4">
+                        <div className="flex items-center justify-between bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <div className="flex items-center gap-2">
+                                <ShoppingBag size={14} className="text-blue-600" />
+                                <span className="text-xs font-black text-gray-800 uppercase tracking-tight">{shop.shopName}</span>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm font-black text-gray-900">{item.price.toLocaleString()}đ</p>
-                                <p className="text-[10px] text-gray-400 font-bold">x{item.quantity}</p>
-                            </div>
+                            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${shop.status === 'DELIVERED' || shop.status === 'COMPLETED' ? 'text-green-600 border-green-100 bg-green-50' :
+                                shop.status === 'CANCELLED' ? 'text-red-600 border-red-100 bg-red-50' :
+                                    'text-blue-600 border-blue-100 bg-blue-50'
+                                }`}>
+                                {shop.status}
+                            </span>
                         </div>
-                    ))}
+                        {shop.orderItems?.map((item: any) => {
 
-                    {/* Nút hành động cho từng Shop */}
-                    <div className="flex justify-end gap-2 pt-2">
-                        {(shop.status === 'PENDING' || shop.status === 'CONFIRMED' || shop.status === 'PROCESSING') && (
-                            <button
-                                onClick={() => window.confirm('Hủy đơn hàng của shop này?') && cancelOrderShopMutation.mutate(shop.id)}
-                                className="px-3 py-1 border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50"
-                            >
-                                Hủy đơn shop
-                            </button>
-                        )}
-                        {shop.status === 'DELIVERED' && (
-                            <button
-                                onClick={() => window.confirm('Xác nhận đã nhận hàng cho shop này?') && confirmDeliveryMutation.mutate(shop.id)}
-                                className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700"
-                            >
-                                Đã nhận hàng
-                            </button>
-                        )}
-                        {(shop.status === 'DELIVERED' || shop.status === 'COMPLETED') && (
-                            <button
-                                onClick={() => window.confirm('Bạn muốn yêu cầu trả hàng cho shop này?') && requestReturnMutation.mutate(shop.id)}
-                                className="px-3 py-1 border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 flex items-center gap-1"
-                            >
-                                <RefreshCcw size={12} /> Trả hàng
-                            </button>
-                        )}
-                        {shop.status === 'COMPLETED' && (
-                            <button className="px-3 py-1 bg-[#111111] text-white text-xs font-bold rounded-lg hover:bg-black flex items-center gap-1">
-                                <Star size={12} className="text-amber-400" fill="currentColor" /> Đánh giá
-                            </button>
-                        )}
+                            const review = reviews.find(
+                                (r) => r.orderItemId === item.id
+                            );
+
+                            return (
+                                <div key={item.id} className="flex items-center gap-4">
+                                    <img
+                                        src={item.productImage}
+                                        alt=""
+                                        className="w-12 h-12 rounded-lg object-cover border border-gray-100"
+                                    />
+
+                                    <div className="flex-1">
+                                        <p className="text-sm font-bold text-gray-900">
+                                            {item.productName}
+                                        </p>
+
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase">
+                                            {item.color} / {item.size}
+                                        </p>
+                                    </div>
+
+                                    <div className="text-right flex flex-col items-end gap-1">
+                                        <p className="text-sm font-black text-gray-900">
+                                            {item.price.toLocaleString()}đ
+                                        </p>
+
+                                        <p className="text-[10px] text-gray-400 font-bold">
+                                            x{item.quantity}
+                                        </p>
+
+                                        {shop.status === 'COMPLETED' && !review && (
+                                            <button
+                                                onClick={() => {
+                                                    setReviewingItem({
+                                                        productId: item.productId,
+                                                        orderItemId: item.id,
+                                                        productName: item.productName
+                                                    });
+                                                }}
+                                                className="mt-2 flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 text-[10px] font-black rounded border border-amber-100 hover:bg-amber-100 transition-colors uppercase"
+                                            >
+                                                <Star size={10} fill="currentColor" />
+                                                Đánh giá
+                                            </button>
+                                        )}
+
+                                        {review && (
+                                            <div className="mt-2 p-2 bg-gray-50 border rounded-lg max-w-[250px]">
+                                                <div className="flex justify-between items-center mb-1">
+
+                                                    <div className="flex items-center gap-1">
+                                                        {[1, 2, 3, 4, 5].map((s) => (
+                                                            <Star
+                                                                key={s}
+                                                                size={10}
+                                                                className={
+                                                                    s <= review.rating
+                                                                        ? 'text-amber-400'
+                                                                        : 'text-gray-200'
+                                                                }
+                                                                fill={
+                                                                    s <= review.rating
+                                                                        ? 'currentColor'
+                                                                        : 'none'
+                                                                }
+                                                            />
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => setEditingReview(review)}
+                                                        >
+                                                            <Pencil
+                                                                size={12}
+                                                                className="text-blue-600"
+                                                            />
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                if (
+                                                                    window.confirm(
+                                                                        'Bạn có muốn xóa đánh giá này?'
+                                                                    )
+                                                                ) {
+                                                                    deleteReviewMutation.mutate({
+                                                                        reviewId: review.id,
+                                                                        productId: review.productId
+                                                                    });
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Trash2
+                                                                size={12}
+                                                                className="text-red-600"
+                                                            />
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+
+                                                <p className="text-xs text-gray-600">
+                                                    {review.comment}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Nút hành động cho từng Shop */}
+                        <div className="flex justify-end gap-2 pt-2">
+                            {(shop.status === 'PENDING' || shop.status === 'CONFIRMED' || shop.status === 'PROCESSING') && (
+                                <button
+                                    onClick={() => window.confirm('Hủy đơn hàng của shop này?') && cancelOrderShopMutation.mutate(shop.id)}
+                                    className="px-3 py-1 border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50"
+                                >
+                                    Hủy đơn shop
+                                </button>
+                            )}
+                            {shop.status === 'DELIVERED' && (
+                                <button
+                                    onClick={() => window.confirm('Xác nhận đã nhận hàng cho shop này?') && confirmDeliveryMutation.mutate(shop.id)}
+                                    className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700"
+                                >
+                                    Đã nhận hàng
+                                </button>
+                            )}
+                            {(shop.status === 'DELIVERED' || shop.status === 'COMPLETED') && (
+                                <button
+                                    onClick={() => window.confirm('Bạn muốn yêu cầu trả hàng cho shop này?') && requestReturnMutation.mutate(shop.id)}
+                                    className="px-3 py-1 border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 flex items-center gap-1"
+                                >
+                                    <RefreshCcw size={12} /> Trả hàng
+                                </button>
+                            )}
+                        </div>
                     </div>
+                ))}
+            </div>
+
+            {reviewingItem && (
+                <ReviewModal
+                    item={reviewingItem}
+                    onClose={() => setReviewingItem(null)}
+                />
+            )}
+            {editingReview && (
+                <ReviewModal
+                    item={{
+                        productId: editingReview.productId,
+                        orderItemId: editingReview.orderItemId,
+                        productName: editingReview.productName
+                    }}
+                    review={editingReview}
+                    onClose={() => setEditingReview(null)}
+                />
+            )}
+        </>
+    );
+};
+
+const ReviewModal = ({ item, review, onClose }: { item: { productId: number, orderItemId: number, productName: string }, review?: any, onClose: () => void }) => {
+    const user = useAuthStore(state => state.user);
+    const createReviewMutation = useCreateReview();
+    const updateReviewMutation = useUpdateReview();
+    const [rating, setRating] = useState(review?.rating || 5);
+    const [comment, setComment] = useState(review?.comment || '');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+
+        if (review) {
+            updateReviewMutation.mutate(
+                {
+                    reviewId: review.id,
+                    data: {
+                        userId: user.id,
+                        productId: item.productId,
+                        orderItemId: item.orderItemId,
+                        rating,
+                        comment
+                    }
+                },
+                {
+                    onSuccess: () => onClose()
+                }
+            );
+        } else {
+            createReviewMutation.mutate(
+                {
+                    userId: user.id,
+                    productId: item.productId,
+                    orderItemId: item.orderItemId,
+                    rating,
+                    comment
+                },
+                {
+                    onSuccess: () => onClose()
+                }
+            );
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 className="font-black text-lg text-gray-900 uppercase">Đánh giá sản phẩm</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><XCircle size={20} className="text-gray-400" /></button>
                 </div>
-            ))}
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    <div className="text-center">
+                        <p className="text-sm font-bold text-gray-500 mb-1">Bạn thấy thế nào về sản phẩm?</p>
+                        <p className="font-black text-gray-900 line-clamp-1">{item.productName}</p>
+                    </div>
+
+                    <div className="flex justify-center gap-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => setRating(s)}
+                                className="transition-transform active:scale-90"
+                            >
+                                <Star
+                                    size={32}
+                                    className={s <= rating ? "text-amber-400" : "text-gray-200"}
+                                    fill={s <= rating ? "currentColor" : "none"}
+                                />
+                            </button>
+                        ))}
+                    </div>
+
+                    <div>
+                        <label className="block text-[11px] font-black text-gray-400 uppercase mb-2">Chia sẻ trải nghiệm của bạn</label>
+                        <textarea
+                            required
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Chất lượng sản phẩm tuyệt vời, đóng gói kỹ càng..."
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-blue-600 transition-all h-32 resize-none text-sm"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={createReviewMutation.isPending}
+                        className="w-full py-4 bg-[#111111] text-white rounded-2xl font-bold hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                        {review
+                            ? 'Cập nhật đánh giá'
+                            : 'Gửi đánh giá ngay'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

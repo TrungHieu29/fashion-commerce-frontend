@@ -1,487 +1,1000 @@
-FASHION COMMERCE API SPECIFICATION (OPTIMIZED FOR AI)
-OAS Version: 3.0
+/v3/api-docs
+Explore
+Fashion Commerce API
+ 1.0 
+OAS 3.0
+/v3/api-docs
+Tài liệu API cho hệ thống thương mại điện tử thời trang.
 
-Base URL: http://localhost:8080
+Servers
 
-I. DANH SÁCH MODULES & ENDPOINTS
-1. Authentication & Roles (auth-controller, role-controller)
-POST /api/auth/register (Body: UserRequestDto) -> AuthResponse
+http://localhost:8080 - Generated server url
 
-POST /api/auth/authenticate (Body: AuthRequestDto) -> AuthResponse
+Authorize
+user-controller
 
-GET /api/roles -> List<RoleResponseDto>
 
-GET /api/roles/{id} -> RoleResponseDto
+GET
+/api/users/{id}
 
-GET /api/roles/name/{name} -> RoleResponseDto
 
-2. User & Address (user-controller, shipping-address-controller)
-GET /api/users -> List<UserResponseDto>
 
-GET /api/users/{id} -> UserResponseDto
+PUT
+/api/users/{id}
 
-GET /api/users/username/{username} -> UserResponseDto
 
-PUT /api/users/{id} (Body: UserUpdateRequestDto) -> UserResponseDto
 
-DELETE /api/users/{id} -> void
+DELETE
+/api/users/{id}
 
-GET /api/shipping-addresses -> List<ShippingAddressResponseDto>
 
-GET /api/shipping-addresses/{id} -> ShippingAddressResponseDto
 
-GET /api/shipping-addresses/user/{userId} -> List<ShippingAddressResponseDto>
+GET
+/api/users
 
-POST /api/shipping-addresses (Body: ShippingAddressRequestDto) -> ShippingAddressResponseDto
 
-PUT /api/shipping-addresses/{id} (Body: ShippingAddressRequestDto) -> ShippingAddressResponseDto
 
-PUT /api/shipping-addresses/{id}/set-default -> ShippingAddressResponseDto
+GET
+/api/users/username/{username}
 
-DELETE /api/shipping-addresses/{id} -> void
 
-3. Shop Module (shop-controller, order-shop-controller)
-GET /api/shops -> List<ShopResponseDto>
+shop-controller
 
-GET /api/shops/{id} -> ShopResponseDto
 
-GET /api/shops/owner/{ownerId} -> ShopResponseDto
+GET
+/api/shops/{id}
 
-POST /api/shops (Body: ShopRequestDto) -> ShopResponseDto
 
-PUT /api/shops/{id} (Body: ShopRequestDto) -> ShopResponseDto
 
-DELETE /api/shops/{id} -> void
+PUT
+/api/shops/{id}
 
-GET /api/order-shops/{id} -> OrderShopResponseDto
 
-GET /api/order-shops/shop/{shopId} -> PageOrderShopResponseDto
 
-GET /api/order-shops/order/{orderId} -> List<OrderShopResponseDto>
+DELETE
+/api/shops/{id}
 
-4. Product & Category & Brand (product-, product-variant-, product-brand-, product-image-, category-)
-GET /api/products (Params: page, size) -> PageProductResponseDto
 
-GET /api/products/{id} -> ProductResponseDto
 
-GET /api/products/search (Params: keyword, page, size) -> PageProductResponseDto
+GET
+/api/shops
 
-GET /api/products/shop/{shopId} -> PageProductResponseDto
 
-GET /api/products/category/{categoryId} -> PageProductResponseDto
 
-GET /api/products/brand/{brandId} -> PageProductResponseDto
+POST
+/api/shops
 
-POST /api/products (Body: ProductRequestDto) -> ProductResponseDto
 
-PUT /api/products/{id} (Body: ProductRequestDto) -> ProductResponseDto
 
-DELETE /api/products/{id} -> void
+GET
+/api/shops/owner/{ownerId}
 
-GET /api/product-variants -> List<ProductVariantResponseDto>
 
-GET /api/product-variants/{id} -> ProductVariantResponseDto
+shipping-address-controller
 
-GET /api/product-variants/product/{productId} -> List<ProductVariantResponseDto>
 
-POST /api/product-variants (Body: ProductVariantRequestDto) -> ProductVariantResponseDto
+GET
+/api/shipping-addresses/{id}
 
-PUT /api/product-variants/{id} (Body: ProductVariantRequestDto) -> ProductVariantResponseDto
 
-DELETE /api/product-variants/{id} -> void
 
-GET /api/product-brands -> List<ProductBrandResponseDto>
+PUT
+/api/shipping-addresses/{id}
 
-GET /api/product-brands/{id} -> ProductBrandResponseDto
 
-POST /api/product-brands (Body: ProductBrandRequestDto) -> ProductBrandResponseDto
 
-PUT /api/product-brands/{id} (Body: ProductBrandRequestDto) -> ProductBrandResponseDto
+DELETE
+/api/shipping-addresses/{id}
 
-DELETE /api/product-brands/{id} -> void
 
-GET /api/categories -> List<CategoryResponseDto>
 
-GET /api/categories/{id} -> CategoryResponseDto
+PUT
+/api/shipping-addresses/{id}/set-default
 
-POST /api/categories (Body: CategoryRequestDto) -> CategoryResponseDto
 
-PUT /api/categories/{id} (Body: CategoryRequestDto) -> CategoryResponseDto
 
-DELETE /api/categories/{id} -> void
+GET
+/api/shipping-addresses
 
-GET /api/product-images/product/{productId} -> List<ProductImageResponseDto>
 
-POST /api/product-images/upload (Multipart) -> ProductImageResponseDto
 
-DELETE /api/product-images/{id} -> void
+POST
+/api/shipping-addresses
 
-5. Cart Module (cart-controller)
-GET /api/carts/user/{userId} -> CartResponseDto
 
-POST /api/carts/user/{userId}/items (Body: CartItemRequestDto) -> CartResponseDto
 
-PUT /api/carts/user/{userId}/items/{cartItemId} (Body: UpdateCartItemQuantityRequestDto) -> CartResponseDto
+GET
+/api/shipping-addresses/user/{userId}
 
-PUT /api/carts/user/{userId}/items/{cartItemId}/variant (Body: UpdateCartItemVariantRequestDto) -> CartResponseDto
 
-DELETE /api/carts/user/{userId}/items/{cartItemId} -> CartResponseDto
+review-controller
 
-DELETE /api/carts/user/{userId} -> void
 
-6. Order & Item & Shipping & Payment (order-, order-item-, order-shipping-, payment-)
-GET /api/orders (Params: status, pageable) -> PageOrderResponseDto
+GET
+/api/reviews/{id}
 
-GET /api/orders/{id} -> OrderResponseDto
 
-GET /api/orders/user/{userId} -> PageOrderResponseDto
 
-POST /api/orders (Body: OrderRequestDto) -> OrderResponseDto
+PUT
+/api/reviews/{id}
 
-PUT /api/orders/{orderId}/status (Params: status) -> OrderResponseDto
 
-DELETE /api/orders/{orderId} -> void
 
-GET /api/order-items/{id} -> OrderItemResponseDto
+DELETE
+/api/reviews/{id}
 
-GET /api/order-items/product-variant/{productVariantId} -> PageOrderItemResponseDto
 
-GET /api/order-items/order-shop/{orderShopId} -> List<OrderItemResponseDto>
 
-GET /api/order-shippings/{id} -> OrderShippingResponseDto
+POST
+/api/reviews
 
-GET /api/order-shippings/order-shop/{orderShopId} -> OrderShippingResponseDto
 
-POST /api/order-shippings/order-shop/{orderShopId} (Body: OrderShippingRequestDto) -> OrderShippingResponseDto
 
-PUT /api/order-shippings/{id} (Body: OrderShippingRequestDto) -> OrderShippingResponseDto
+GET
+/api/reviews/users/{userId}
 
-GET /api/payments/{id} -> PaymentResponseDto
 
-GET /api/payments/orders/{orderId} -> PaymentResponseDto
 
-POST /api/payments/orders/{orderId} (Body: PaymentRequestDto) -> PaymentResponseDto
+GET
+/api/reviews/products/{productId}
 
-PUT /api/payments/{id}/status (Params: status) -> PaymentResponseDto
 
-7. Review & Discount & Chat (review-, discount-, message-, conversation-)
-GET /api/reviews/{id} -> ReviewResponseDto
+product-controller
 
-GET /api/reviews/users/{userId} -> PageReviewResponseDto
 
-GET /api/reviews/products/{productId} -> PageReviewResponseDto
+GET
+/api/products/{id}
 
-POST /api/reviews (Body: ReviewRequestDto) -> ReviewResponseDto
 
-PUT /api/reviews/{id} (Body: ReviewRequestDto) -> ReviewResponseDto
 
-DELETE /api/reviews/{id} -> void
+PUT
+/api/products/{id}
 
-GET /api/discounts/{id} -> DiscountResponseDto
 
-GET /api/discounts/shops/{shopId} -> PageDiscountResponseDto
 
-GET /api/discounts/shops/{shopId}/active -> List<DiscountResponseDto>
+DELETE
+/api/products/{id}
 
-POST /api/discounts (Body: DiscountRequestDto) -> DiscountResponseDto
 
-PUT /api/discounts/{id} (Body: DiscountRequestDto) -> DiscountResponseDto
 
-DELETE /api/discounts/{id} -> void
+GET
+/api/products
 
-GET /api/conversations -> PageConversationResponseDto
 
-GET /api/conversations/{id} -> ConversationResponseDto
 
-GET /api/conversations/users/{userId} -> List<ConversationResponseDto>
+POST
+/api/products
 
-GET /api/conversations/shops/{shopId} -> List<ConversationResponseDto>
 
-POST /api/conversations (Body: ConversationRequestDto) -> ConversationResponseDto
 
-GET /api/messages/conversations/{conversationId} -> PageMessageResponseDto
+GET
+/api/products/shop/{shopId}
 
-POST /api/messages (Body: MessageRequestDto) -> MessageResponseDto
 
-PUT /api/messages/conversations/{conversationId}/read -> void
 
-II. ĐỊNH NGHĨA CHI TIẾT SCHEMAS (DTOs DATA STRUCT)
-JSON
-{
-  "UserRequestDto": {
-    "username": "string (Required)",
-    "password": "string (Required)",
-    "fullName": "string (Required)",
-    "email": "string",
-    "phone": "string",
-    "gender": "string (MALE/FEMALE)",
-    "dateOfBirth": "LocalDate (yyyy-MM-dd)",
-    "avatar": "string"
-  },
-  "UserUpdateRequestDto": {
-    "fullName": "string (Required)",
-    "phone": "string",
-    "gender": "string",
-    "dateOfBirth": "LocalDate",
-    "avatar": "string"
-  },
-  "UserResponseDto": {
-    "id": "Long",
-    "username": "string",
-    "fullName": "string",
-    "phone": "string",
-    "status": "string (ACTIVE/INACTIVE)",
-    "email": "string",
-    "avatar": "string",
-    "gender": "string",
-    "dateOfBirth": "LocalDate",
-    "createdAt": "LocalDateTime",
-    "roleName": "string"
-  },
-  "ShopRequestDto": {
-    "shopName": "string (Required)",
-    "logo": "string",
-    "phone": "string (Required)",
-    "address": "string",
-    "email": "string",
-    "ownerId": "Long"
-  },
-  "ShopResponseDto": {
-    "id": "Long",
-    "shopName": "string",
-    "logo": "string",
-    "phone": "string",
-    "status": "string",
-    "address": "string",
-    "email": "string",
-    "createdAt": "LocalDateTime",
-    "ownerId": "Long",
-    "ownerFullName": "string"
-  },
-  "ShippingAddressRequestDto": {
-    "userId": "Long (Required)",
-    "receiverName": "string (Required)",
-    "phone": "string",
-    "addressLine": "string (Required)",
-    "city": "string (Required)",
-    "district": "string (Required)",
-    "isDefault": "Boolean"
-  },
-  "ShippingAddressResponseDto": {
-    "id": "Long",
-    "userId": "Long",
-    "receiverName": "string",
-    "phone": "string",
-    "addressLine": "string",
-    "city": "string",
-    "district": "string",
-    "isDefault": "Boolean"
-  },
-  "ProductRequestDto": {
-    "productName": "string (Required)",
-    "productDetail": "string",
-    "status": "string (Required, ACTIVE/...) ",
-    "price": "Double/BigDecimal (Required)",
-    "shopId": "Long (Required)",
-    "brandId": "Long (Required)",
-    "categoryId": "Long (Required)"
-  },
-  "ProductResponseDto": {
-    "id": "Long",
-    "productName": "string",
-    "productDetail": "string",
-    "rating": "Double",
-    "status": "string",
-    "originalPrice": "Double",
-    "finalPrice": "Double",
-    "discountAmount": "Double",
-    "shopId": "Long",
-    "shopName": "string",
-    "brandId": "Long",
-    "brandName": "string",
-    "categoryId": "Long",
-    "categoryName": "string"
-  },
-  "ProductVariantRequestDto": {
-    "productId": "Long (Required)",
-    "size": "string (Required)",
-    "color": "string (Required)",
-    "stock": "Integer (Required)"
-  },
-  "ProductVariantResponseDto": {
-    "id": "Long",
-    "productId": "Long",
-    "size": "string",
-    "color": "string",
-    "stock": "Integer"
-  },
-  "ProductImageResponseDto": {
-    "id": "Long",
-    "productId": "Long",
-    "color": "string",
-    "imageUrl": "string"
-  },
-  "ProductBrandRequestDto": {
-    "name": "string (Required)",
-    "description": "string"
-  },
-  "ProductBrandResponseDto": {
-    "id": "Long",
-    "name": "string",
-    "description": "string"
-  },
-  "CategoryRequestDto": {
-    "name": "string (Required)"
-  },
-  "CategoryResponseDto": {
-    "id": "Long",
-    "name": "string"
-  },
-  "CartResponseDto": {
-    "id": "Long",
-    "userId": "Long",
-    "updatedAt": "LocalDateTime",
-    "cartItems": "List<CartItemResponseDto>",
-    "totalAmount": "Double"
-  },
-  "CartItemRequestDto": {
-    "productVariantId": "Long (Required)",
-    "quantity": "Integer"
-  },
-  "CartItemResponseDto": {
-    "id": "Long",
-    "productVariantId": "Long",
-    "productId": "Long",
-    "productName": "string",
-    "size": "string",
-    "color": "string",
-    "quantity": "Integer",
-    "price": "Double",
-    "imageUrl": "string",
-    "subtotal": "Double"
-  },
-  "UpdateCartItemQuantityRequestDto": { "quantity": "Integer (Required)" },
-  "UpdateCartItemVariantRequestDto": { "productVariantId": "Long (Required)" },
-  "OrderRequestDto": {
-    "userId": "Long (Required)",
-    "voucherCode": "string",
-    "addressId": "Long",
-    "receiverName": "string",
-    "phone": "string",
-    "addressLine": "string",
-    "city": "string",
-    "district": "string"
-  },
-  "OrderResponseDto": {
-    "id": "Long",
-    "userId": "Long",
-    "userFullName": "string",
-    "totalPrice": "Double",
-    "finalPrice": "Double",
-    "status": "string (PENDING/PROCESSING/SHIPPED/DELIVERED/CANCELLED/RETURNED)",
-    "addressSnapshot": "string",
-    "createdAt": "LocalDateTime",
-    "updatedAt": "LocalDateTime"
-  },
-  "OrderShopResponseDto": {
-    "id": "Long",
-    "orderId": "Long",
-    "shopId": "Long",
-    "shopName": "string",
-    "totalPrice": "Double",
-    "finalPrice": "Double",
-    "discountId": "Long",
-    "addressSnapshot": "string",
-    "status": "string",
-    "orderItems": "List<OrderItemResponseDto>",
-    "shipping": "OrderShippingResponseDto"
-  },
-  "OrderItemResponseDto": {
-    "id": "Long",
-    "productVariantId": "Long",
-    "productName": "string",
-    "productImage": "string",
-    "size": "string",
-    "color": "string",
-    "quantity": "Integer",
-    "price": "Double"
-  },
-  "OrderShippingRequestDto": {
-    "shippingStatus": "string (PENDING/...) ",
-    "trackingCode": "string"
-  },
-  "OrderShippingResponseDto": {
-    "id": "Long",
-    "addressSnapshot": "string",
-    "shippingStatus": "string",
-    "trackingCode": "string"
-  },
-  "PaymentRequestDto": {
-    "method": "string (Required, COD/...)",
-    "status": "string",
-    "transactionCode": "string"
-  },
-  "PaymentResponseDto": {
-    "id": "Long",
-    "amount": "Double",
-    "method": "string",
-    "status": "string (PENDING/COMPLETED/FAILED/REFUNDED)",
-    "transactionCode": "string",
-    "createdAt": "LocalDateTime"
-  },
-  "ReviewRequestDto": {
-    "userId": "Long (Required)",
-    "productId": "Long (Required)",
-    "orderItemId": "Long (Required)",
-    "rating": "Integer (Required)",
-    "comment": "string (Required)"
-  },
-  "ReviewResponseDto": {
-    "id": "Long",
-    "userId": "Long",
-    "username": "string",
-    "productId": "Long",
-    "productName": "string",
-    "orderItemId": "Long",
-    "rating": "Integer",
-    "comment": "string",
-    "createdAt": "LocalDateTime"
-  },
-  "DiscountRequestDto": {
-    "shopId": "Long (Required)",
-    "discountTarget": "string (Required)",
-    "discountType": "string (Required)",
-    "discountValue": "Double (Required)",
-    "code": "string",
-    "startDate": "LocalDateTime (Required)",
-    "endDate": "LocalDateTime (Required)",
-    "status": "string (Required)",
-    "minOrderValue": "Double",
-    "productIds": "List<Long>"
-  },
-  "DiscountResponseDto": {
-    "id": "Long",
-    "shopId": "Long",
-    "discountType": "string",
-    "discountValue": "Double",
-    "startDate": "LocalDateTime",
-    "endDate": "LocalDateTime",
-    "status": "string",
-    "minOrderValue": "Double"
-  },
-  "ConversationRequestDto": { "userId": "Long (Required)", "shopId": "Long (Required)" },
-  "ConversationResponseDto": {
-    "id": "Long", "userId": "Long", "userName": "string", "userAvatar": "string",
-    "shopId": "Long", "shopName": "string", "shopLogo": "string", "createdAt": "LocalDateTime"
-  },
-  "MessageRequestDto": { "conversationId": "Long (Required)", "senderId": "Long (Required)", "content": "string (Required)" },
-  "MessageResponseDto": {
-    "id": "Long", "conversationId": "Long", "senderId": "Long", "senderName": "string",
-    "content": "string", "isRead": "Boolean", "createdAt": "LocalDateTime"
-  },
-  "AuthResponse": {
-    "accessToken": "string",
-    "refreshToken": "string",
-    "user": "UserResponseDto"
-  }
+GET
+/api/products/search
+
+
+
+GET
+/api/products/category/{categoryId}
+
+
+
+GET
+/api/products/brand/{brandId}
+
+
+product-variant-controller
+
+
+GET
+/api/product-variants/{id}
+
+
+
+PUT
+/api/product-variants/{id}
+
+
+
+DELETE
+/api/product-variants/{id}
+
+
+
+GET
+/api/product-variants
+
+
+
+POST
+/api/product-variants
+
+
+
+GET
+/api/product-variants/product/{productId}
+
+
+product-brand-controller
+
+
+GET
+/api/product-brands/{id}
+
+
+
+PUT
+/api/product-brands/{id}
+
+
+
+DELETE
+/api/product-brands/{id}
+
+
+
+GET
+/api/product-brands
+
+
+
+POST
+/api/product-brands
+
+
+payment-controller
+
+
+PUT
+/api/payments/{paymentId}/process-online-result
+
+
+
+PUT
+/api/payments/{id}/status
+
+
+
+GET
+/api/payments/orders/{orderId}
+
+
+
+POST
+/api/payments/orders/{orderId}
+
+
+
+GET
+/api/payments/{id}
+
+
+order-shop-controller
+
+
+PUT
+/api/order-shops/{orderShopId}/request-return
+
+
+
+PUT
+/api/order-shops/{orderShopId}/confirm-order
+
+
+
+PUT
+/api/order-shops/{orderShopId}/confirm-delivery
+
+
+
+PUT
+/api/order-shops/{orderShopId}/cancel
+
+
+
+GET
+/api/order-shops/{id}
+
+
+
+GET
+/api/order-shops/shop/{shopId}
+
+
+
+GET
+/api/order-shops/order/{orderId}
+
+
+order-shipping-controller
+
+
+GET
+/api/order-shippings/{id}
+
+
+
+PUT
+/api/order-shippings/{id}
+
+
+
+GET
+/api/order-shippings/order-shop/{orderShopId}
+
+
+
+POST
+/api/order-shippings/order-shop/{orderShopId}
+
+
+message-controller
+
+
+PUT
+/api/messages/conversations/{conversationId}/read
+
+
+
+POST
+/api/messages
+
+
+
+GET
+/api/messages/conversations/{conversationId}
+
+
+discount-controller
+
+
+GET
+/api/discounts/{id}
+
+
+
+PUT
+/api/discounts/{id}
+
+
+
+DELETE
+/api/discounts/{id}
+
+
+
+POST
+/api/discounts
+
+
+
+POST
+/api/discounts/apply-voucher
+
+
+
+GET
+/api/discounts/shops/{shopId}
+
+
+
+GET
+/api/discounts/shops/{shopId}/active
+
+
+category-controller
+
+
+GET
+/api/categories/{id}
+
+
+
+PUT
+/api/categories/{id}
+
+
+
+DELETE
+/api/categories/{id}
+
+
+
+GET
+/api/categories
+
+
+
+POST
+/api/categories
+
+
+cart-controller
+
+
+PUT
+/api/carts/user/{userId}/items/{cartItemId}
+
+
+
+DELETE
+/api/carts/user/{userId}/items/{cartItemId}
+
+
+
+PUT
+/api/carts/user/{userId}/items/{cartItemId}/variant
+
+
+
+POST
+/api/carts/user/{userId}/items
+
+
+
+GET
+/api/carts/user/{userId}
+
+
+
+DELETE
+/api/carts/user/{userId}
+
+
+product-image-controller
+
+
+POST
+/api/product-images/upload
+
+
+
+GET
+/api/product-images/product/{productId}
+
+
+
+DELETE
+/api/product-images/{id}
+
+
+order-controller
+
+
+POST
+/api/orders
+
+
+
+GET
+/api/orders/{id}
+
+
+
+GET
+/api/orders/user/{userId}
+
+
+
+DELETE
+/api/orders/{orderId}
+
+
+conversation-controller
+
+
+GET
+/api/conversations
+
+
+
+POST
+/api/conversations
+
+
+
+GET
+/api/conversations/{id}
+
+
+
+GET
+/api/conversations/users/{userId}
+
+
+
+GET
+/api/conversations/shops/{shopId}
+
+
+auth-controller
+
+
+POST
+/api/auth/register
+
+
+
+POST
+/api/auth/authenticate
+
+
+role-controller
+
+
+GET
+/api/roles
+
+
+
+GET
+/api/roles/{id}
+
+
+
+GET
+/api/roles/name/{name}
+
+
+order-item-controller
+
+
+GET
+/api/order-items/{id}
+
+
+
+GET
+/api/order-items/product-variant/{productVariantId}
+
+
+
+GET
+/api/order-items/order-shop/{orderShopId}
+
+
+
+Schemas
+UserUpdateRequestDto{
+fullName*	[...]
+phone	[...]
+gender	[...]
+dateOfBirth	[...]
+avatar	[...]
+}
+UserResponseDto{
+id	[...]
+username	[...]
+fullName	[...]
+phone	[...]
+status	[...]
+email	[...]
+avatar	[...]
+gender	[...]
+dateOfBirth	[...]
+createdAt	[...]
+roleName	[...]
+}
+ShopRequestDto{
+shopName*	[...]
+logo	[...]
+phone*	[...]
+address	[...]
+email	[...]
+ownerId	[...]
+}
+ShopResponseDto{
+id	[...]
+shopName	[...]
+logo	[...]
+phone	[...]
+status	[...]
+address	[...]
+email	[...]
+createdAt	[...]
+ownerId	[...]
+ownerFullName	[...]
+}
+ShippingAddressRequestDto{
+userId*	[...]
+receiverName*	[...]
+phone	[...]
+addressLine*	[...]
+city*	[...]
+district*	[...]
+isDefault	[...]
+}
+ShippingAddressResponseDto{
+id	[...]
+userId	[...]
+receiverName	[...]
+phone	[...]
+addressLine	[...]
+city	[...]
+district	[...]
+isDefault	[...]
+}
+ReviewRequestDto{
+userId*	[...]
+productId*	[...]
+orderItemId*	[...]
+rating*	[...]
+comment*	[...]
+}
+ReviewResponseDto{
+id	[...]
+userId	[...]
+username	[...]
+productId	[...]
+productName	[...]
+orderItemId	[...]
+rating	[...]
+comment	[...]
+createdAt	[...]
+}
+ProductRequestDto{
+productName*	[...]
+productDetail	[...]
+status*	[...]
+price*	[...]
+shopId*	[...]
+brandId*	[...]
+categoryId*	[...]
+}
+ProductResponseDto{
+id	[...]
+productName	[...]
+productDetail	[...]
+rating	[...]
+status	[...]
+originalPrice	[...]
+finalPrice	[...]
+discountAmount	[...]
+shopId	[...]
+shopName	[...]
+brandId	[...]
+brandName	[...]
+categoryId	[...]
+categoryName	[...]
+}
+ProductVariantRequestDto{
+productId*	[...]
+size*	[...]
+color*	[...]
+stock*	[...]
+}
+ProductVariantResponseDto{
+id	[...]
+productId	[...]
+size	[...]
+color	[...]
+stock	[...]
+}
+ProductBrandRequestDto{
+name*	[...]
+description	[...]
+}
+ProductBrandResponseDto{
+id	[...]
+name	[...]
+description	[...]
+}
+PaymentResponseDto{
+id	[...]
+amount	[...]
+method	[...]
+status	[...]
+transactionCode	[...]
+createdAt	[...]
+}
+OrderItemResponseDto{
+id	[...]
+productVariantId	[...]
+productId	[...]
+productName	[...]
+productImage	[...]
+size	[...]
+color	[...]
+quantity	[...]
+price	[...]
+}
+OrderShippingResponseDto{
+id	[...]
+addressSnapshot	[...]
+shippingStatus	[...]
+trackingCode	[...]
+}
+OrderShopResponseDto{
+id	[...]
+orderId	[...]
+shopId	[...]
+shopName	[...]
+totalPrice	[...]
+finalPrice	[...]
+discountId	[...]
+addressSnapshot	[...]
+status	[...]
+orderItems	[...]
+shipping	OrderShippingResponseDto{...}
+stockDeducted	[...]
+}
+OrderShippingRequestDto{
+shippingStatus	[...]
+trackingCode	[...]
+}
+DiscountRequestDto{
+shopId*	[...]
+discountTarget*	[...]
+discountType*	[...]
+discountValue*	[...]
+code	[...]
+startDate*	[...]
+endDate*	[...]
+status*	[...]
+minOrderValue	[...]
+productIds	[...]
+}
+DiscountResponseDto{
+id	[...]
+shopId	[...]
+code	[...]
+discountTarget	[...]
+discountType	[...]
+discountValue	[...]
+startDate	[...]
+endDate	[...]
+status	[...]
+minOrderValue	[...]
+productIds	[...]
+}
+CategoryRequestDto{
+name*	[...]
+}
+CategoryResponseDto{
+id	[...]
+name	[...]
+}
+UpdateCartItemQuantityRequestDto{
+quantity*	[...]
+}
+CartItemResponseDto{
+id	[...]
+productVariantId	[...]
+productName	[...]
+size	[...]
+color	[...]
+quantity	[...]
+price	[...]
+imageUrl	[...]
+subtotal	[...]
+productId	[...]
+shopId	[...]
+shopName	[...]
+}
+CartResponseDto{
+id	[...]
+userId	[...]
+updatedAt	[...]
+cartItems	[...]
+totalAmount	[...]
+}
+UpdateCartItemVariantRequestDto{
+productVariantId*	[...]
+}
+ProductImageResponseDto{
+id	[...]
+productId	[...]
+color	[...]
+imageUrl	[...]
+}
+PaymentRequestDto{
+method*	[...]
+status	[...]
+transactionCode	[...]
+}
+OrderRequestDto{
+userId*	[...]
+voucherCode	[...]
+paymentMethod*	[...]
+addressId	[...]
+receiverName	[...]
+phone	[...]
+addressLine	[...]
+city	[...]
+district	[...]
+}
+OrderResponseDto{
+id	[...]
+userId	[...]
+userFullName	[...]
+totalPrice	[...]
+finalPrice	[...]
+addressSnapshot	[...]
+createdAt	[...]
+updatedAt	[...]
+orderShops	[...]
+payment	PaymentResponseDto{...}
+}
+MessageRequestDto{
+conversationId*	[...]
+senderId*	[...]
+content*	[...]
+}
+MessageResponseDto{
+id	[...]
+conversationId	[...]
+senderId	[...]
+senderName	[...]
+content	[...]
+isRead	[...]
+createdAt	[...]
+}
+ApplyVoucherRequestDto{
+shopId*	[...]
+voucherCode*	[...]
+subtotal*	[...]
+}
+ConversationRequestDto{
+userId*	[...]
+shopId*	[...]
+}
+ConversationResponseDto{
+id	[...]
+userId	[...]
+userName	[...]
+userAvatar	[...]
+shopId	[...]
+shopName	[...]
+shopLogo	[...]
+createdAt	[...]
+}
+CartItemRequestDto{
+productVariantId*	[...]
+quantity	[...]
+}
+UserRequestDto{
+username*	[...]
+password*	[...]
+fullName*	[...]
+email	[...]
+phone	[...]
+gender	[...]
+dateOfBirth	[...]
+avatar	[...]
+}
+AuthResponse{
+accessToken	[...]
+refreshToken	[...]
+user	UserResponseDto{...}
+}
+RoleResponseDto{
+id	[...]
+name	[...]
+}
+Pageable{
+page	[...]
+size	[...]
+sort	[...]
+}
+PageReviewResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageableObject{
+offset	[...]
+sort	[...]
+pageNumber	[...]
+pageSize	[...]
+paged	[...]
+unpaged	[...]
+}
+SortObject{
+direction	[...]
+nullHandling	[...]
+ascending	[...]
+property	[...]
+ignoreCase	[...]
+}
+PageProductResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageOrderResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageOrderShopResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageOrderItemResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageMessageResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageDiscountResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
+}
+PageConversationResponseDto{
+totalElements	[...]
+totalPages	[...]
+first	[...]
+last	[...]
+numberOfElements	[...]
+size	[...]
+content	[...]
+number	[...]
+sort	[...]
+pageable	PageableObject{...}
+empty	[...]
 }

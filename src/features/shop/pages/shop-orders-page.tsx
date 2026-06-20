@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMyShop } from '../hooks/use-shop';
 import { useShopOrders, useConfirmOrderShop, useUpdateOrderShipping, useCancelOrderShop } from '@/features/order/hooks/use-order'; // Giữ lại useConfirmOrderShop và useCancelOrderShop
-import { ShoppingCart, Package, Truck, CheckCircle, Clock, AlertCircle, Loader2, PackageX, Trash2, RotateCcw } from 'lucide-react';
+import { ShoppingCart, Package, Truck, CheckCircle, Clock, AlertCircle, Loader2, PackageX, Trash2, RotateCcw, Search } from 'lucide-react';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ const ShopOrdersPage = ({ mode = 'confirm' }: ShopOrdersPageProps) => {
     const navigate = useNavigate();
     const [page, setPage] = useState(0);
     const [statusFilter, setStatusFilter] = useState<string>(mode === 'confirm' ? 'PENDING' : 'COMPLETED');
+    const [searchId, setSearchId] = useState('');
 
     const CONFIRM_TABS = [
         { id: 'PENDING', label: 'Chờ xác nhận' },
@@ -42,9 +43,13 @@ const ShopOrdersPage = ({ mode = 'confirm' }: ShopOrdersPageProps) => {
     const shippingMutation = useUpdateOrderShipping();
 
     // Backend đã lọc theo statusFilter và sắp xếp id,desc.
-    const processedOrders = React.useMemo(() => {
-        return orderPage?.content || [];
-    }, [orderPage]);
+    const filteredOrders = React.useMemo(() => {
+        let orders = orderPage?.content || [];
+        if (searchId) {
+            orders = orders.filter((o: any) => o.id.toString().includes(searchId));
+        }
+        return orders;
+    }, [orderPage, searchId]);
 
     const getStatusStyle = (status: string) => {
         switch (status) {
@@ -138,6 +143,20 @@ const ShopOrdersPage = ({ mode = 'confirm' }: ShopOrdersPageProps) => {
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+                <div className="relative max-w-sm">
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                    <input
+                        type="text"
+                        placeholder="Tìm theo mã đơn shop (ID)..."
+                        value={searchId}
+                        onChange={(e) => setSearchId(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm focus:border-[#111111] outline-none transition-all"
+                    />
+                </div>
+            </div>
+
             <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead>
@@ -151,7 +170,7 @@ const ShopOrdersPage = ({ mode = 'confirm' }: ShopOrdersPageProps) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB]">
-                        {processedOrders.map((orderShop: any) => (
+                        {filteredOrders.map((orderShop: any) => (
                             <tr key={orderShop.id} className="hover:bg-[#F9FAFB]/30">
                                 <td className="px-6 py-4">
                                     <p className="font-bold text-[#111111] text-sm">#{orderShop.id}</p>
@@ -209,7 +228,7 @@ const ShopOrdersPage = ({ mode = 'confirm' }: ShopOrdersPageProps) => {
                                 </td>
                             </tr>
                         ))}
-                        {(!isLoading && processedOrders.length === 0) && (
+                        {(!isLoading && filteredOrders.length === 0) && (
                             <tr>
                                 <td colSpan={6} className="px-6 py-20 text-center">
                                     <div className="flex flex-col items-center justify-center gap-2 text-[#9CA3AF] italic text-sm mx-auto">

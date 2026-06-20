@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom'; // Thêm Navigate vào đây
 
 import LoginPage from '@/features/auth/pages/login-page';
 import RegisterPage from '@/features/auth/pages/register-page';
@@ -12,6 +12,8 @@ import AddProductPage from '@/features/shop/pages/add-product-page';
 import EditProductPage from '@/features/shop/pages/edit-product-page';
 import DiscountManagementPage from '@/features/discount/pages/discount-management-page';
 import ShopOrdersPage from '@/features/shop/pages/shop-orders-page';
+import ShopDashboardPage from '@/features/shop/pages/shop-dashboard-page';
+import ShopAnalyticsPage from '@/features/shop/pages/shop-analytics-page';
 
 import ProductsPage from '@/features/product/pages/products-page.tsx';
 
@@ -20,9 +22,6 @@ import CheckoutPage from '@/features/order/pages/checkout-page';
 import OrderSuccessPage from '@/features/order/pages/order-success-page';
 import ProfileOrdersPage from '@/features/order/pages/profile-orders-page';
 import OrderDetailPage from '@/features/order/pages/order-detail-page';
-
-
-
 
 import MainLayout from '@/layouts/main-layout';
 import SellerLayout from '@/layouts/seller-layout';
@@ -34,12 +33,9 @@ import CartPage from '@/features/cart/pages/cart-page';
 import ShopShippingPage from '@/features/shop/pages/shop-shipping-page';
 
 export const router = createBrowserRouter([
-
     {
         element: <AuthLayout />,
-
         children: [
-
             {
                 path: '/login',
                 element: <LoginPage />,
@@ -50,7 +46,6 @@ export const router = createBrowserRouter([
             },
         ],
     },
-
     {
         element: (
             <ProtectedRoute>
@@ -58,8 +53,22 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: [
+            // 1. Đưa thằng chuyển hướng lên đầu tiên làm nhiệm vụ "đón lỏng" khi vừa vào /my-shop
             {
                 path: '/my-shop',
+                element: <Navigate to="/my-shop/dashboard" replace />,
+            },
+            // 2. Các đường dẫn tuyệt đối khác viết tường minh rõ ràng
+            {
+                path: '/my-shop/dashboard',
+                element: <ShopDashboardPage />,
+            },
+            {
+                path: '/my-shop/analytics',
+                element: <ShopAnalyticsPage />,
+            },
+            {
+                path: '/my-shop/profile', // Khớp chuẩn 100% với to: '/my-shop/profile' ở Sidebar
                 element: <MyShopPage />,
             },
             {
@@ -92,17 +101,13 @@ export const router = createBrowserRouter([
             },
         ],
     },
-
     {
         element: <MainLayout />,
-
         children: [
-
             {
                 path: '/',
                 element: <ProductsPage />,
             },
-
             {
                 path: '/cart',
                 element: (
@@ -127,15 +132,12 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
-
             {
                 path: '/product/:id',
                 element: <ProductDetailPage />,
             },
-
             {
                 path: '/profile',
-
                 element: (
                     <ProtectedRoute>
                         <ProfilePage />

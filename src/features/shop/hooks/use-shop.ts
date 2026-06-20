@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import * as shopApi from '../api/shop.api';
 import { toast } from 'sonner';
 import type { ShopRequest, ShopUpdateRequest } from '../types/shop.types';
+import { api } from '@/lib/axios';
 
 export const useShops = () => {
     return useQuery({
@@ -77,5 +78,35 @@ export const useDeleteShop = () => {
             const serverMessage = error.response?.data?.message;
             toast.error(serverMessage || 'Lỗi xóa shop. Vui lòng thử lại.');
         }
+    });
+};
+
+export const useShopDashboard = (shopId?: number) => {
+    return useQuery({
+        queryKey: ['shop-dashboard', shopId],
+        queryFn: async () => {
+            const response = await api.get(`/api/dashboard/shop/${shopId}`);
+            return response.data;
+        },
+        enabled: !!shopId,
+        refetchInterval: 30000, // Tự động làm mới sau mỗi 30 giây
+        staleTime: 15000,
+    });
+};
+
+export const useShopAnalytics = (shopId?: number | string, period: 'today' | '7days' | '30days' = 'today') => {
+    return useQuery({
+        // 1. Đưa period vào queryKey để React Query tự động kích hoạt gọi API mới khi tab thay đổi
+        queryKey: ['shop-analytics', shopId, period],
+        queryFn: async () => {
+            // 2. Truyền tham số ?period= lên backend qua Query Parameter (Ví dụ: /api/dashboard/shop/1/analytics?period=7days)
+            const response = await api.get(`/api/dashboard/shop/${shopId}/analytics`, {
+                params: { period }
+            });
+            return response.data;
+        },
+        enabled: !!shopId, // Chỉ chạy khi đã xác định được shopId thực tế
+        staleTime: 5000,   // Giữ data cũ 5 giây, sau đó sẽ coi là cũ
+        refetchInterval: 10000, // Tự động kéo dữ liệu mới sau mỗi 10 giây (đồng bộ real-time cực tốt khi test mua đơn)
     });
 };

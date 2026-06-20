@@ -10,10 +10,9 @@ import {
     Store,
     Settings,
     Bell,
-    UserCircle,
     ChevronDown,
     Home,
-    Tag, // Thêm icon Tag vào đây
+    Tag,
     Truck,
     History
 } from 'lucide-react';
@@ -23,6 +22,26 @@ const SellerLayout = () => {
     const location = useLocation();
 
     const menuGroups = [
+        // ==========================================
+        // NHÓM BÁO CÁO TÀI CHÍNH TÁCH BIỆT MỚI
+        // ==========================================
+        {
+            title: 'Phân Tích Kinh Doanh',
+            items: [
+                {
+                    label: 'Tổng quan Dashboard',
+                    icon: <LayoutDashboard size={18} />,
+                    to: '/my-shop/dashboard',
+                    active: location.pathname === '/my-shop/dashboard'
+                },
+                {
+                    label: 'Phân tích doanh thu',
+                    icon: <BarChart3 size={18} />,
+                    to: '/my-shop/analytics', // Đường dẫn dẫn tới trang báo cáo bạn vừa tạo
+                    active: location.pathname === '/my-shop/analytics'
+                },
+            ]
+        },
         {
             title: 'Vận chuyển',
             items: [
@@ -41,16 +60,13 @@ const SellerLayout = () => {
             items: [
                 { label: 'Tất cả sản phẩm', icon: <ShoppingBag size={18} />, to: '/my-shop/products', active: location.pathname === '/my-shop/products' },
                 { label: 'Thêm sản phẩm', icon: <PackagePlus size={18} />, to: '/my-shop/products/add', active: location.pathname === '/my-shop/products/add' },
-                {
-                    label: 'Quản lý giảm giá', icon: <Tag size={18} />, to: '/my-shop/discounts',
-                    active: location.pathname === '/my-shop/discounts'
-                },
+                { label: 'Quản lý giảm giá', icon: <Tag size={18} />, to: '/my-shop/discounts', active: location.pathname === '/my-shop/discounts' },
             ]
         },
         {
             title: 'Quản lý Shop',
             items: [
-                { label: 'Hồ sơ Shop', icon: <Store size={18} />, to: '/my-shop', active: location.pathname === '/my-shop' },
+                { label: 'Hồ sơ Shop', icon: <Store size={18} />, to: '/my-shop/profile', active: location.pathname === '/my-shop/profile' },
                 { label: 'Thiết lập Shop', icon: <Settings size={18} />, to: '#' },
             ]
         }
@@ -122,7 +138,7 @@ const SellerLayout = () => {
                     </div>
                 </header>
 
-                <main className="p-8 max-w-[1200px]">
+                <main className="p-8 max-w-[1440px]"> {/* Tăng max-w từ 1200px lên 1440px để đồ thị hiển thị rộng rãi, đẹp hơn */}
                     <Outlet />
                 </main>
             </div>

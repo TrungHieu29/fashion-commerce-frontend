@@ -1,26 +1,16 @@
 import React, { useState } from 'react';
-import { useMyShop, useCreateShop, useUpdateShop, useDeleteShop } from '../hooks/use-shop';
-import { Edit, Trash2, Store, X, Phone, Mail, MapPin, Calendar, User, AlertCircle, Eye, DollarSign, Package, Tag, ArrowRight } from 'lucide-react';
+import { useMyShop, useUpdateShop, useCreateShop } from '../hooks/use-shop';
+import { Edit, Store, X, Phone, Mail, MapPin, Calendar, User, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { shopSchema } from '../schemas/shop.schema';
 import type { ShopResponse } from '../types/shop.types';
 import { useAuthStore } from '@/stores/auth.store';
-import { useQuery } from '@tanstack/react-query';
-import { getProductsByShop } from '@/features/product/api/product.api';
 import { useNavigate } from 'react-router-dom';
 
 const MyShopPage = () => {
     const { data: myShop, isLoading, isError } = useMyShop();
     const navigate = useNavigate();
-    const user = useAuthStore(state => state.user);
-
-    // Lấy danh sách sản phẩm để đếm số lượng thực tế
-    const { data: products } = useQuery({
-        queryKey: ['shop-products-count', myShop?.id],
-        queryFn: () => getProductsByShop(myShop!.id),
-        enabled: !!myShop?.id
-    });
 
     const [isCreateShopModalOpen, setIsCreateShopModalOpen] = useState(false);
     const [isEditShopModalOpen, setIsEditShopModalOpen] = useState(false);
@@ -38,22 +28,16 @@ const MyShopPage = () => {
                 </div>
             ) : (
                 <>
-                    {/* Stats Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <StatCard
-                            label="Sản phẩm đang bán"
-                            value={products ? (Array.isArray(products) ? products.length : products.content?.length || 0).toString() : '0'}
-                            icon={<Package size={20} />}
-                            color="text-blue-600"
-                        />
-                        <StatCard label="Lượt xem Shop" value="0" icon={<Eye size={20} />} color="text-purple-600" />
-                        <StatCard label="Doanh thu tạm tính" value="0đ" icon={<DollarSign size={20} />} color="text-green-600" />
+                    <div className="flex items-center gap-2 mb-6">
+                        <span className="text-sm font-medium text-gray-400">Kênh người bán</span>
+                        <span className="text-gray-300">/</span>
+                        <span className="text-sm font-bold text-gray-900">Hồ sơ Shop</span>
                     </div>
 
                     <div className="bg-white p-10 rounded-2xl border border-[#E5E7EB] shadow-sm">
                         <div className="flex justify-between items-center mb-8 pb-6 border-b border-[#F3F4F6]">
                             <div>
-                                <h2 className="text-[22px] font-bold text-[#0F0F0F] tracking-tight">Hồ sơ Shop</h2>
+                                <h2 className="text-[24px] font-black text-[#0F0F0F] tracking-tight uppercase">Thông tin tài khoản Shop</h2>
                                 <p className="text-[#6B7280] text-sm mt-1">Thông tin hiển thị công khai của bạn</p>
                             </div>
                             <div className="flex gap-3">
@@ -63,7 +47,6 @@ const MyShopPage = () => {
                                 >
                                     <Edit size={16} /> Chỉnh sửa hồ sơ
                                 </button>
-                                <DeleteShopButton shopId={myShop.id} />
                             </div>
                         </div>
 
@@ -96,18 +79,6 @@ const MyShopPage = () => {
     );
 };
 
-const StatCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) => (
-    <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center gap-5">
-        <div className={`p-3 rounded-xl bg-gray-50 ${color}`}>
-            {icon}
-        </div>
-        <div>
-            <p className="text-[13px] font-medium text-[#6B7280]">{label}</p>
-            <p className="text-xl font-bold text-[#111111] mt-0.5">{value}</p>
-        </div>
-    </div>
-);
-
 const InfoField = ({ label, value, icon }: { label: string, value?: string, icon: React.ReactNode }) => (
     <div className="space-y-1.5">
         <label className="block text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider">{label}</label>
@@ -117,24 +88,6 @@ const InfoField = ({ label, value, icon }: { label: string, value?: string, icon
         </div>
     </div>
 );
-
-const DeleteShopButton = ({ shopId }: { shopId: number }) => {
-    const deleteShop = useDeleteShop();
-    const handleDelete = () => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa shop này?')) {
-            deleteShop.mutate(shopId);
-        }
-    };
-    return (
-        <button
-            onClick={handleDelete}
-            disabled={deleteShop.isPending}
-            className="flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700 disabled:opacity-50"
-        >
-            <Trash2 size={18} /> {deleteShop.isPending ? 'Đang xóa...' : 'Xóa shop'}
-        </button>
-    );
-};
 
 // --- Component Modal Tạo Shop mới ---
 const CreateShopModal = ({ ownerId, onClose }: { ownerId: number, onClose: () => void }) => {

@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 import { useProductDetail } from '../hooks/use-variant';
 import { useAuthStore } from '@/stores/auth.store';
+import { useProductReviews } from '@/features/review/hooks/use-review';
 import { useAddToCart } from '@/features/cart/hooks/use-cart';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
@@ -38,6 +39,18 @@ const ProductDetailPage = () => {
         },
         enabled: !!id
     });
+
+    // Lấy danh sách đánh giá
+    const [isViewAll, setIsViewAll] = useState(false);
+    const [reviewPage, setReviewPage] = useState(0);
+
+    // Nếu chưa ấn "Xem tất cả", lấy 3 cái rating cao nhất. Nếu đã ấn, lấy theo trang.
+    const { data: reviewsData, isLoading: isLoadingReviews } = useProductReviews(
+        Number(id),
+        reviewPage,
+        isViewAll ? 5 : 3,
+        'rating,desc'
+    );
 
     const { mutate: addToCart, isPending: isAdding } =
         useAddToCart();
@@ -513,6 +526,81 @@ const ProductDetailPage = () => {
                         <ShieldCheck size={18} />
                         Bảo hành chính hãng
                         12 tháng
+                    </div>
+
+                    {/* REVIEWS SECTION */}
+                    <div className="mt-16 border-t border-gray-100 pt-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-black text-[#111111] uppercase tracking-tight">Đánh giá sản phẩm</h2>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl">
+                                <Star className="text-amber-500" fill="currentColor" size={20} />
+                                <span className="text-xl font-black">{product.rating || '0.0'}</span>
+                                <span className="text-gray-400 text-sm font-bold">/ 5.0</span>
+                            </div>
+                        </div>
+
+                        {isLoadingReviews ? (
+                            <div className="py-10 text-center text-gray-400 italic">Đang tải đánh giá...</div>
+                        ) : reviewsData?.content && reviewsData.content.length > 0 ? (
+                            <div className="space-y-6">
+                                {reviewsData.content.map((review) => (
+                                    <div key={review.id} className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold uppercase">
+                                                    {review.username.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-900">{review.username}</p>
+                                                    <div className="flex items-center gap-0.5 mt-1">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star
+                                                                key={i}
+                                                                size={12}
+                                                                className={i < review.rating ? "text-amber-400" : "text-gray-200"}
+                                                                fill="currentColor"
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase">
+                                                {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-600 text-sm leading-relaxed">{review.comment}</p>
+                                    </div>
+                                ))}
+
+                                {!isViewAll && reviewsData.totalElements > 3 && (
+                                    <button
+                                        onClick={() => setIsViewAll(true)}
+                                        className="w-full py-4 border border-dashed border-gray-200 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all uppercase tracking-widest"
+                                    >
+                                        Xem tất cả ({reviewsData.totalElements}) đánh giá
+                                    </button>
+                                )}
+
+                                {isViewAll && reviewsData.totalPages > 1 && (
+                                    <div className="flex justify-center gap-2 mt-8">
+                                        <button
+                                            disabled={reviewPage === 0}
+                                            onClick={() => setReviewPage(p => p - 1)}
+                                            className="px-6 py-2 border rounded-xl text-xs font-bold disabled:opacity-30 hover:bg-gray-50"
+                                        >Trang trước</button>
+                                        <button
+                                            disabled={reviewPage >= reviewsData.totalPages - 1}
+                                            onClick={() => setReviewPage(p => p + 1)}
+                                            className="px-6 py-2 border rounded-xl text-xs font-bold disabled:opacity-30 hover:bg-gray-50"
+                                        >Trang sau</button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="py-20 text-center bg-gray-50/50 rounded-3xl border border-dashed">
+                                <p className="text-gray-400 italic">Sản phẩm chưa có đánh giá nào.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

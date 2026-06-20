@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useMyShop } from '../hooks/use-shop';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProductsByShop, deleteProduct } from '@/features/product/api/product.api';
-import { Edit3, Trash2, Package, Search, Filter, Star } from 'lucide-react';
+import { Edit3, Trash2, Package, Search, Filter, Star, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/lib/axios';
@@ -16,21 +16,47 @@ const ShopProductsPage = () => {
     const [page, setPage] = useState(0);
     const pageSize = 10;
 
-    const { data: productPage, isLoading } = useQuery({
-        queryKey: ['shop-products', shop?.id, page],
+    // State cho tìm kiếm và bộ lọc
+    const [searchTerm, setSearchTerm] = useState('');
+    const [ratingFilter, setRatingFilter] = useState<string>('all');
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
+    const [brandFilter, setBrandFilter] = useState<string>('all');
+
+    // Lấy categories và brands để hiển thị trong bộ lọc
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => api.get('/api/categories').then(res => res.data)
+    });
+    const { data: brands } = useQuery({
+        queryKey: ['brands'],
+        queryFn: () => api.get('/api/product-brands').then(res => res.data)
+    });
+
+    const { data: productPage, isLoading, isFetching } = useQuery({
+        queryKey: ['shop-products', shop?.id, page, searchTerm, ratingFilter, categoryFilter, brandFilter],
         queryFn: async () => {
+            // Lưu ý: Nếu backend chưa hỗ trợ param, chúng ta sẽ lọc client-side ở useMemo bên dưới
             const data = await getProductsByShop(shop!.id, page, pageSize, 'id,desc');
             return data;
         },
-        enabled: !!shop?.id
+        enabled: !!shop?.id,
+        placeholderData: (previousData) => previousData, // Giữ dữ liệu cũ khi typing để tránh nhảy focus
     });
 
-    // Sắp xếp sản phẩm mới nhất lên đầu
-    const sortedProducts = useMemo(() => {
+    // Xử lý lọc và tìm kiếm client-side (do endpoint GET /api/products/shop/{id} trong API.md chưa mô tả params filter)
+    const processedProducts = useMemo(() => {
         const content = Array.isArray(productPage) ? productPage : productPage?.content;
         if (!content) return [];
-        return [...content].sort((a, b) => b.id - a.id);
-    }, [productPage]);
+
+        return content.filter((p: any) => {
+            const matchSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchRating = ratingFilter === 'all' ? true : Math.floor(p.rating || 0) >= parseInt(ratingFilter);
+            const matchCategory = categoryFilter === 'all' ? true : p.categoryId?.toString() === categoryFilter;
+            const matchBrand = brandFilter === 'all' ? true : p.brandId?.toString() === brandFilter;
+
+            return matchSearch && matchRating && matchCategory && matchBrand;
+        });
+    }, [productPage, searchTerm, ratingFilter, categoryFilter, brandFilter]);
 
     // Mutation xóa sản phẩm
     const deleteMutation = useMutation({
@@ -50,7 +76,13 @@ const ShopProductsPage = () => {
         }
     };
 
-    if (isLoading) return <div className="h-64 flex items-center justify-center text-[#6B7280]">Đang tải danh sách sản phẩm...</div>;
+    // Chỉ hiển thị loading screen khi tải lần đầu và chưa có dữ liệu
+    if (isLoading && !productPage) return (
+        <div className="h-96 flex flex-col items-center justify-center text-[#9CA3AF] gap-4">
+            <Loader2 className="animate-spin" size={32} />
+            <p className="text-sm font-medium animate-pulse uppercase tracking-widest">Đang tải kho hàng...</p>
+        </div>
+    );
 
     return (
         <div className="space-y-6">
@@ -61,19 +93,49 @@ const ShopProductsPage = () => {
                 </div>
             </div>
 
-            {/* Filters Bar */}
-            <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] flex gap-4 shadow-sm">
+            {/* Filters Bar chuyên nghiệp */}
+            <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] flex flex-wrap gap-4 shadow-sm">
                 <div className="flex-1 relative">
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
                     <input
                         type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Tìm theo tên sản phẩm, mã SKU..."
                         className="w-full pl-10 pr-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm focus:border-[#111111] outline-none transition-all"
                     />
+                    {isFetching && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Loader2 className="animate-spin text-blue-600" size={16} />
+                        </div>
+                    )}
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 border border-[#E5E7EB] rounded-lg text-sm font-medium hover:bg-[#F9FAFB] transition-all">
-                    <Filter size={16} /> Bộ lọc
-                </button>
+                <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm font-medium outline-none focus:border-blue-500"
+                >
+                    <option value="all">Tất cả danh mục</option>
+                    {categories?.map((c: any) => <option key={c.id} value={c.id.toString()}>{c.name}</option>)}
+                </select>
+                <select
+                    value={brandFilter}
+                    onChange={(e) => setBrandFilter(e.target.value)}
+                    className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm font-medium outline-none focus:border-blue-500"
+                >
+                    <option value="all">Tất cả thương hiệu</option>
+                    {brands?.map((b: any) => <option key={b.id} value={b.id.toString()}>{b.name}</option>)}
+                </select>
+                <select
+                    value={ratingFilter}
+                    onChange={(e) => setRatingFilter(e.target.value)}
+                    className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm font-medium outline-none focus:border-blue-500"
+                >
+                    <option value="all">Mọi đánh giá</option>
+                    <option value="5">5 sao</option>
+                    <option value="4">4 sao trở lên</option>
+                    <option value="3">3 sao trở lên</option>
+                </select>
             </div>
 
             <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
@@ -89,8 +151,8 @@ const ShopProductsPage = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB]">
-                        {sortedProducts.length > 0 ? (
-                            sortedProducts.map((product: ProductResponse) => (
+                        {processedProducts.length > 0 ? (
+                            processedProducts.map((product: ProductResponse) => (
                                 <tr key={product.id} className="hover:bg-[#F9FAFB]/30 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
