@@ -1,13 +1,15 @@
 export interface OrderRequest {
     userId: number;
+    cartItemIds?: number[];
     voucherCode?: string;
+    shopVoucherCodes?: Record<number, string>;
     addressId?: number;
     receiverName?: string;
     phone?: string;
     addressLine?: string;
     city?: string;
     district?: string;
-    paymentMethod: 'COD' | 'BANKING' | 'VNPAY' | 'MOMO';
+    paymentMethod: 'COD' | 'VNPAY' | 'MOMO';
 }
 
 export interface OrderResponse {
@@ -20,6 +22,7 @@ export interface OrderResponse {
     addressSnapshot: string;
     createdAt: string;
     updatedAt: string;
+    payment?: PaymentResponse;
 }
 
 export interface PageOrderResponse {
@@ -82,4 +85,13 @@ export interface PaymentRequest {
     method: string; // COD, VNPAY, etc.
     status?: string;
     transactionCode?: string;
+}
+
+export interface PaymentResponse {
+    id?: number;
+    amount?: number;
+    method: string; // COD, VNPAY, etc.
+    status?: string;
+    transactionCode?: string;
+    createdAt?: string;
 }

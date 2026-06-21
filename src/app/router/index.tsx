@@ -6,6 +6,7 @@ import RegisterPage from '@/features/auth/pages/register-page';
 import ProfilePage from '@/features/user/pages/profile-page';
 import MyShopPage from '@/features/shop/pages/my-shop-page';
 import ShopListPage from '@/features/shop/pages/shop-list-page';
+import ShopDetailPage from '@/features/shop/pages/shop-detail-page';
 import RegisterSellerPage from '@/features/shop/pages/register-seller-page';
 import ShopProductsPage from '@/features/shop/pages/shop-products-page';
 import AddProductPage from '@/features/shop/pages/add-product-page';
@@ -25,13 +26,22 @@ import OrderDetailPage from '@/features/order/pages/order-detail-page';
 
 import MainLayout from '@/layouts/main-layout';
 import SellerLayout from '@/layouts/seller-layout';
+import AdminLayout from '@/layouts/admin-layout';
 
 import AuthLayout from '@/layouts/auth-layout';
 
 import { ProtectedRoute } from '@/routes/protected-route';
+import { AdminRoute } from '@/routes/admin-route';
 import CartPage from '@/features/cart/pages/cart-page';
 import ShopShippingPage from '@/features/shop/pages/shop-shipping-page';
 import SellerChatPage from '@/features/chat/pages/seller-chat-page';
+import AdminDashboardPage from '@/features/admin/pages/admin-dashboard-page';
+import AdminUsersPage from '@/features/admin/pages/admin-users-page';
+import AdminShopsPage from '@/features/admin/pages/admin-shops-page';
+import AdminProductsPage from '@/features/admin/pages/admin-products-page';
+import AdminCatalogPage from '@/features/admin/pages/admin-catalog-page';
+import AdminOrdersPage from '@/features/admin/pages/admin-orders-page';
+import AdminReviewsPage from '@/features/admin/pages/admin-reviews-page';
 
 export const router = createBrowserRouter([
     {
@@ -107,6 +117,47 @@ export const router = createBrowserRouter([
         ],
     },
     {
+        element: (
+            <AdminRoute>
+                <AdminLayout />
+            </AdminRoute>
+        ),
+        children: [
+            {
+                path: '/admin',
+                element: <Navigate to="/admin/dashboard" replace />,
+            },
+            {
+                path: '/admin/dashboard',
+                element: <AdminDashboardPage />,
+            },
+            {
+                path: '/admin/users',
+                element: <AdminUsersPage />,
+            },
+            {
+                path: '/admin/shops',
+                element: <AdminShopsPage />,
+            },
+            {
+                path: '/admin/products',
+                element: <AdminProductsPage />,
+            },
+            {
+                path: '/admin/catalog',
+                element: <AdminCatalogPage />,
+            },
+            {
+                path: '/admin/orders',
+                element: <AdminOrdersPage />,
+            },
+            {
+                path: '/admin/reviews',
+                element: <AdminReviewsPage />,
+            },
+        ],
+    },
+    {
         element: <MainLayout />,
         children: [
             {
@@ -169,6 +220,12 @@ export const router = createBrowserRouter([
                 path: '/shops',
                 element: (
                     <ShopListPage />
+                ),
+            },
+            {
+                path: '/shops/:id',
+                element: (
+                    <ShopDetailPage />
                 ),
             },
         ],

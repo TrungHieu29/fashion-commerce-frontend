@@ -14,6 +14,8 @@ export const Navbar = () => {
         useAuthStore(
             (state) => state.isAuthenticated
         );
+    const user = useAuthStore((state) => state.user);
+    const isAdmin = user?.roles?.some((role) => role === 'ADMIN' || role === 'ROLE_ADMIN') || false;
 
     // Lấy dữ liệu giỏ hàng để hiển thị số lượng
     const { data: cart } = useCart(); // Sử dụng useCart để lấy dữ liệu giỏ hàng
@@ -30,19 +32,22 @@ export const Navbar = () => {
                 </Link>
 
                 <div className="hidden md:flex items-center gap-8 text-[15px] font-medium text-[#6B7280]">
-                    <Link to="/" className="hover:text-[#111111] transition-colors">Home</Link>
-                    <Link to="/shops" className="hover:text-[#111111] transition-colors">Stores</Link>
+                    <Link to="/" className="hover:text-[#111111] transition-colors">Trang chủ</Link>
+                    <Link to="/shops" className="hover:text-[#111111] transition-colors">Cửa hàng</Link>
+                    {isAuthenticated && isAdmin && (
+                        <Link to="/admin" className="font-bold text-blue-600 transition-colors hover:text-blue-700">Quản trị</Link>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-6">
                     {isAuthenticated && (
                         <div className="hidden md:flex items-center">
                             {isLoadingMyShop ? (
-                                <span className="text-[14px] text-gray-300">Checking...</span>
+                                <span className="text-[14px] text-gray-300">Đang kiểm tra...</span>
                             ) : myShop ? (
                                 <Link to="/my-shop" className="text-[14px] text-blue-600 font-bold hover:opacity-80">Kênh người bán</Link>
                             ) : (
-                                <Link to="/register-seller" className="text-[14px] font-bold text-[#111111] hover:text-blue-600">Be a Seller</Link>
+                                <Link to="/register-seller" className="text-[14px] font-bold text-[#111111] hover:text-blue-600">Bán hàng</Link>
                             )}
                         </div>
                     )}
@@ -65,19 +70,19 @@ export const Navbar = () => {
                                 onClick={logout}
                                 className="text-[14px] font-bold text-[#EF4444] hover:opacity-70"
                             >
-                                Logout
+                                Đăng xuất
                             </button>
                         </div>
                     ) : (
                         <div className="flex items-center gap-4">
                             <Link to="/register" className="text-[14px] font-medium text-[#6B7280] hover:text-[#111111] transition-colors">
-                                Register
+                                Đăng ký
                             </Link>
                             <Link
                                 to="/login"
                                 className="bg-[#111111] text-white px-6 py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#222222] transition-all active:scale-95"
                             >
-                                Login
+                                Đăng nhập
                             </Link>
                         </div>
                     )}

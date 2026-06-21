@@ -1,90 +1,87 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Package } from 'lucide-react'; // Thêm import Star và Package
+import { Package, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
-import type { ProductResponse } from '../types/product.types';
 import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
+import type { ProductResponse } from '../types/product.types';
 
 interface ProductCardProps {
     product: ProductResponse;
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
-    // Đảm bảo các giá trị số luôn là number, mặc định là 0 nếu undefined/null
     const originalPrice = product.originalPrice ?? 0;
     const finalPrice = product.finalPrice ?? 0;
     const discountAmount = product.discountAmount ?? 0;
     const rating = product.rating ?? 0;
 
-    // Lấy danh sách ảnh giống như ProductDetailPage để hiển thị ảnh đầu tiên (màu đầu tiên)
     const { data: productImages } = useQuery<ProductImageResponse[]>({
         queryKey: ['product-images', product.id],
         queryFn: async () => {
             const res = await api.get(`/api/product-images/product/${product.id}`);
             return res.data;
         },
-        staleTime: 1000 * 60 * 5, // Cache 5 phút để tránh gọi API quá nhiều khi scroll
+        staleTime: 1000 * 60 * 5,
     });
 
     const displayImage = productImages && productImages.length > 0
         ? productImages[0].imageUrl
         : product.imageUrl;
 
-    // Logic hiển thị Badge giảm giá
-    const renderDiscountBadge = () => {
-        // Chỉ hiển thị badge nếu có giảm giá và giá gốc hợp lệ
-        if (discountAmount <= 0 || originalPrice <= 0) return null;
-
-        const percent = Math.round((discountAmount / originalPrice) * 100);
-        if (percent > 0) {
-            return (
-                <span className="absolute top-2 right-2 bg-red-50 text-red-600 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-tight">
-                    -{percent}%
-                </span>
-            );
-        }
-        return null;
-    };
+    const discountPercent = discountAmount > 0 && originalPrice > 0
+        ? Math.round((discountAmount / originalPrice) * 100)
+        : 0;
 
     return (
-        <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md relative"> {/* Thêm relative cho badge */}
-            {renderDiscountBadge()}
-            {/* Placeholder cho ảnh sản phẩm */}
-            <div className="mb-4 flex aspect-square w-full items-center justify-center rounded-lg bg-gray-100 text-gray-400 overflow-hidden">
-                {displayImage ? (
-                    <img src={displayImage} alt={product.productName} className="w-full h-full object-cover" />
-                ) : (
-                    <Package size={48} strokeWidth={1} />
-                )}
-            </div>
+        <div className="relative flex min-h-[390px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+            {discountPercent > 0 && (
+                <span className="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white shadow-sm">
+                    -{discountPercent}%
+                </span>
+            )}
 
-            <Link to={`/product/${product.id}`}>
-                <h3 className="mb-1 text-lg font-bold text-gray-900 line-clamp-1 hover:text-blue-600 transition-colors cursor-pointer">
-                    {product.productName}
-                </h3>
+            <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-slate-100">
+                {displayImage ? (
+                    <img src={displayImage} alt={product.productName} className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-300">
+                        <Package size={46} strokeWidth={1.4} />
+                    </div>
+                )}
             </Link>
 
-            <p className="mb-4 flex-grow text-sm text-gray-500 line-clamp-2">{product.productDetail}</p>
+            <div className="flex flex-1 flex-col p-4">
+                <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    {product.categoryName && <span className="truncate">{product.categoryName}</span>}
+                    {product.brandName && <span className="truncate rounded-full bg-slate-100 px-2 py-0.5 text-slate-500">{product.brandName}</span>}
+                </div>
 
-            <div className="mt-auto">
-                <div className="mb-3 flex items-center justify-between">
-                    <div className="flex flex-col"> {/* Hiển thị giá gốc gạch ngang nếu có */}
+                <Link to={`/product/${product.id}`}>
+                    <h3 className="line-clamp-2 text-base font-black leading-snug text-slate-950 transition-colors hover:text-blue-600">
+                        {product.productName}
+                    </h3>
+                </Link>
+
+                <p className="mt-2 line-clamp-2 flex-1 text-sm leading-5 text-slate-500">{product.productDetail}</p>
+
+                <div className="mt-4 flex items-end justify-between gap-3">
+                    <div className="min-w-0">
                         {discountAmount > 0 && originalPrice > finalPrice && (
-                            <span className="text-sm text-gray-400 line-through">
-                                {originalPrice.toLocaleString()}đ
-                            </span>
+                            <p className="text-xs font-semibold text-slate-400 line-through">
+                                {originalPrice.toLocaleString('vi-VN')}đ
+                            </p>
                         )}
-                        <span className="text-xl font-bold text-blue-600">
-                            {finalPrice.toLocaleString()}đ
-                        </span>
+                        <p className="text-xl font-black text-blue-600">
+                            {finalPrice.toLocaleString('vi-VN')}đ
+                        </p>
                     </div>
-                    <span className="flex items-center gap-1 text-sm font-medium text-amber-500">
-                        {rating.toFixed(1)} <Star size={12} fill="currentColor" /> {/* Hiển thị rating với 1 chữ số thập phân và icon */}
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-black text-amber-600">
+                        {rating.toFixed(1)} <Star size={13} fill="currentColor" />
                     </span>
                 </div>
-                <Link to={`/product/${product.id}`}>
-                    <button className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:scale-[0.98]">
+
+                <Link to={`/product/${product.id}`} className="mt-4">
+                    <button className="h-10 w-full rounded-xl bg-slate-950 text-sm font-bold text-white transition-colors hover:bg-blue-600">
                         Xem chi tiết
                     </button>
                 </Link>

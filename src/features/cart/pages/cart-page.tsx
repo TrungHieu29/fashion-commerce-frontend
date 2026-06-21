@@ -1,42 +1,90 @@
-import React, { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowRight, Store } from 'lucide-react';
+import { ArrowRight, CheckSquare, ShoppingBag, Store } from 'lucide-react';
 import { useCart } from '../hooks/use-cart';
 import { CartItem } from '../components/cart-item';
+
+const SELECTED_CART_ITEMS_KEY = 'selected-cart-item-ids';
 
 const CartPage = () => {
     const { data: cart, isLoading, isError } = useCart();
     const navigate = useNavigate();
+    const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
 
-    if (isLoading) return <div className="flex h-96 items-center justify-center text-gray-500 font-medium">Đang tải giỏ hàng...</div>;
+    const cartItems = cart?.cartItems || [];
 
-    // Nhóm sản phẩm theo Shop từ dữ liệu Backend mới
+    useEffect(() => {
+        if (!cartItems.length) return;
+
+        setSelectedItemIds((current) => {
+            const validIds = new Set(cartItems.map(item => item.id));
+            const next = current.filter(id => validIds.has(id));
+            return next.length > 0 ? next : cartItems.map(item => item.id);
+        });
+    }, [cartItems.length]);
+
     const groupedCartItems = useMemo(() => {
-        if (!cart?.cartItems) return [];
-        const groups: Record<number, { shopId: number, shopName: string, items: any[] }> = {};
+        const groups: Record<number, { shopId: number; shopName: string; items: typeof cartItems }> = {};
 
-        cart.cartItems.forEach((item) => {
-            const sid = item.shopId;
-            if (!groups[sid]) {
-                groups[sid] = { shopId: sid, shopName: item.shopName, items: [] };
+        cartItems.forEach((item) => {
+            const shopId = item.shopId;
+            if (!groups[shopId]) {
+                groups[shopId] = { shopId, shopName: item.shopName, items: [] };
             }
-            groups[sid].items.push(item);
+            groups[shopId].items.push(item);
         });
 
         return Object.values(groups);
-    }, [cart]);
+    }, [cartItems]);
 
-    if (isError || !cart || !cart.cartItems || cart.cartItems.length === 0) {
+    const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
+    const selectedSubtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const isAllSelected = cartItems.length > 0 && selectedItemIds.length === cartItems.length;
+
+    const toggleItem = (itemId: number) => {
+        setSelectedItemIds(current =>
+            current.includes(itemId)
+                ? current.filter(id => id !== itemId)
+                : [...current, itemId]
+        );
+    };
+
+    const toggleShop = (shopId: number) => {
+        const shopItemIds = groupedCartItems.find(group => group.shopId === shopId)?.items.map(item => item.id) || [];
+        const allShopSelected = shopItemIds.every(id => selectedItemIds.includes(id));
+
+        setSelectedItemIds(current => {
+            if (allShopSelected) {
+                return current.filter(id => !shopItemIds.includes(id));
+            }
+            return Array.from(new Set([...current, ...shopItemIds]));
+        });
+    };
+
+    const toggleAll = () => {
+        setSelectedItemIds(isAllSelected ? [] : cartItems.map(item => item.id));
+    };
+
+    const handleCheckout = () => {
+        if (selectedItemIds.length === 0) return;
+
+        sessionStorage.setItem(SELECTED_CART_ITEMS_KEY, JSON.stringify(selectedItemIds));
+        navigate('/checkout');
+    };
+
+    if (isLoading) {
+        return <div className="flex h-96 items-center justify-center text-sm font-medium text-slate-500">Đang tải giỏ hàng...</div>;
+    }
+
+    if (isError || !cart || cartItems.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20">
-                <div className="rounded-full bg-gray-100 p-6 text-gray-400 mb-6">
+            <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
+                <div className="mb-6 rounded-full bg-slate-100 p-6 text-slate-400">
                     <ShoppingBag size={48} />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Giỏ hàng trống</h2>
-                <p className="text-gray-500 mb-8 text-center max-w-xs">
-                    Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy quay lại cửa hàng để chọn sản phẩm ưng ý nhé!
-                </p>
-                <Link to="/" className="rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition-all hover:bg-blue-700 active:scale-95">
+                <h2 className="text-2xl font-black text-slate-950">Giỏ hàng trống</h2>
+                <p className="mt-2 max-w-sm text-sm text-slate-500">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy quay lại cửa hàng để chọn sản phẩm ưng ý.</p>
+                <Link to="/" className="mt-8 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition-colors hover:bg-blue-700">
                     Tiếp tục mua sắm
                 </Link>
             </div>
@@ -44,64 +92,88 @@ const CartPage = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-10 flex items-center gap-3">
-                Giỏ hàng của bạn <span className="text-blue-600">({cart.cartItems.length})</span>
-            </h1>
+        <div className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8">
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-950">Giỏ hàng của bạn</h1>
+                    <p className="mt-1 text-sm text-slate-500">{cartItems.length} sản phẩm, đã chọn {selectedItemIds.length} sản phẩm</p>
+                </div>
+                <button onClick={toggleAll} className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50">
+                    <CheckSquare size={17} />
+                    {isAllSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                </button>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* Danh sách sản phẩm */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="border-b border-gray-100 pb-4 text-sm font-bold uppercase tracking-wider text-gray-400 hidden md:flex">
-                        <div className="flex-1">Sản phẩm</div>
-                        <div className="w-32 text-center">Số lượng</div>
-                        <div className="w-32 text-right">Tổng cộng</div>
-                        <div className="w-10"></div>
-                    </div>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+                <div className="space-y-5">
+                    {groupedCartItems.map((group) => {
+                        const shopItemIds = group.items.map(item => item.id);
+                        const selectedInShop = shopItemIds.filter(id => selectedItemIds.includes(id)).length;
+                        const allShopSelected = selectedInShop === shopItemIds.length;
 
-                    {groupedCartItems.map((group) => (
-                        <div key={group.shopId} className="space-y-4">
-                            <div className="flex items-center gap-2 text-blue-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
-                                <Store size={18} />
-                                <span className="font-bold uppercase text-xs tracking-wider">{group.shopName}</span>
-                            </div>
-                            <div className="space-y-2">
-                                {group.items.map((item) => (
-                                    <CartItem key={item.id} item={item} />
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                        return (
+                            <section key={group.shopId} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={allShopSelected}
+                                        onChange={() => toggleShop(group.shopId)}
+                                        className="h-4 w-4 accent-blue-600"
+                                    />
+                                    <Store size={18} className="text-blue-600" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-black text-slate-950">{group.shopName}</p>
+                                        <p className="text-xs text-slate-400">Đã chọn {selectedInShop}/{group.items.length} sản phẩm</p>
+                                    </div>
+                                </div>
+                                <div className="divide-y divide-slate-100">
+                                    {group.items.map((item) => (
+                                        <CartItem
+                                            key={item.id}
+                                            item={item}
+                                            selected={selectedItemIds.includes(item.id)}
+                                            onSelectChange={() => toggleItem(item.id)}
+                                        />
+                                    ))}
+                                </div>
+                            </section>
+                        );
+                    })}
                 </div>
 
-                {/* Tóm tắt đơn hàng */}
-                <div className="lg:col-span-1">
-                    <div className="rounded-2xl bg-gray-50 p-6 sticky top-8">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6">Tóm tắt đơn hàng</h3>
-
-                        <div className="space-y-4 text-sm">
-                            <div className="flex justify-between text-gray-600">
+                <aside className="lg:sticky lg:top-24 lg:h-fit">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h3 className="text-lg font-black text-slate-950">Tóm tắt đơn hàng</h3>
+                        <div className="mt-5 space-y-4 text-sm">
+                            <div className="flex justify-between text-slate-600">
+                                <span>Sản phẩm đã chọn</span>
+                                <span className="font-bold">{selectedItemIds.length}</span>
+                            </div>
+                            <div className="flex justify-between text-slate-600">
                                 <span>Tạm tính</span>
-                                <span className="font-semibold">{cart.totalAmount.toLocaleString()}đ</span>
+                                <span className="font-bold">{selectedSubtotal.toLocaleString('vi-VN')}đ</span>
                             </div>
-                            <div className="flex justify-between text-gray-600">
+                            <div className="flex justify-between text-slate-600">
                                 <span>Phí vận chuyển</span>
-                                <span className="text-green-600 font-medium">Miễn phí</span>
+                                <span className="font-bold text-emerald-600">Miễn phí</span>
                             </div>
-                            <div className="border-t border-gray-200 pt-4 flex justify-between text-lg font-bold text-gray-900">
-                                <span>Tổng cộng</span>
-                                <span className="text-blue-600">{cart.totalAmount.toLocaleString()}đ</span>
+                            <div className="border-t border-slate-200 pt-4">
+                                <div className="flex items-end justify-between">
+                                    <span className="text-base font-black text-slate-950">Tổng cộng</span>
+                                    <span className="text-2xl font-black text-blue-600">{selectedSubtotal.toLocaleString('vi-VN')}đ</span>
+                                </div>
                             </div>
                         </div>
 
                         <button
-                            onClick={() => navigate('/checkout')}
-                            className="mt-8 w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-4 text-lg font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-blue-300 active:scale-95"
+                            onClick={handleCheckout}
+                            disabled={selectedItemIds.length === 0}
+                            className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-base font-black text-white shadow-lg shadow-blue-100 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                         >
-                            Tiến hành thanh toán <ArrowRight size={20} />
+                            Tiến hành thanh toán <ArrowRight size={18} />
                         </button>
                     </div>
-                </div>
+                </aside>
             </div>
         </div>
     );

@@ -246,7 +246,7 @@ const ShopAnalyticsPage = () => {
                             </div>
                         </div>
 
-                        <div className="h-[320px] w-full">
+                        <div className="h-[320px] min-h-[320px] min-w-0 w-full">
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -279,7 +279,7 @@ const ShopAnalyticsPage = () => {
                             <p className="text-xs text-slate-400 mt-0.5">Phân bổ khối lượng đơn hàng thành công</p>
                         </div>
 
-                        <div className="h-[220px] w-full">
+                        <div className="h-[220px] min-h-[220px] min-w-0 w-full">
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>

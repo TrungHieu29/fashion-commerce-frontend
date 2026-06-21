@@ -3,6 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Package, MapPin, CreditCard, Loader2, ShoppingBag } from 'lucide-react';
 import { useOrderDetails } from '../hooks/use-order';
 
+const paymentMethodLabels: Record<string, string> = {
+    COD: 'Thanh toán khi nhận hàng (COD)',
+    VNPAY: 'VNPAY QR mockup',
+    MOMO: 'MOMO QR mockup',
+};
+
 const OrderSuccessPage = () => {
     const { id } = useParams();
     const { data: order, isLoading } = useOrderDetails(Number(id));
@@ -36,7 +42,7 @@ const OrderSuccessPage = () => {
                         <CreditCard className="text-gray-400 mt-1" size={20} />
                         <div>
                             <p className="font-bold text-sm uppercase text-[#9CA3AF]">Phương thức thanh toán</p>
-                            <p className="text-[#111111] font-medium">Thanh toán khi nhận hàng (COD)</p>
+                            <p className="text-[#111111] font-medium">{paymentMethodLabels[order?.payment?.method || 'COD'] || order?.payment?.method || 'COD'}</p>
                         </div>
                     </div>
                 </div>

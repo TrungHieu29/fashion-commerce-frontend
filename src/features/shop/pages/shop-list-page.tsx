@@ -1,39 +1,89 @@
-import React from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Mail, MapPin, Phone, Search, Store, UserRound } from 'lucide-react';
 import { useShops } from '../hooks/use-shop';
-import { Store, Phone, Mail, MapPin } from 'lucide-react';
 
 const ShopListPage = () => {
-    const { data: shops, isLoading, isError } = useShops();
+    const [searchTerm, setSearchTerm] = useState('');
+    const { data: shops = [], isLoading, isError } = useShops();
 
-    if (isLoading) return <div className="p-20 text-center">Đang tải danh sách shop...</div>;
-    if (isError) return <div className="p-20 text-center text-red-500">Có lỗi xảy ra khi tải danh sách shop.</div>;
+    const filteredShops = useMemo(() => {
+        const keyword = searchTerm.trim().toLowerCase();
+        if (!keyword) return shops;
+
+        return shops.filter(shop =>
+            [shop.shopName, shop.email, shop.phone, shop.address, shop.ownerFullName]
+                .filter(Boolean)
+                .some(value => String(value).toLowerCase().includes(keyword))
+        );
+    }, [shops, searchTerm]);
+
+    if (isLoading) return <div className="p-20 text-center text-sm text-slate-500">Đang tải danh sách shop...</div>;
+    if (isError) return <div className="p-20 text-center text-sm text-red-500">Không thể tải danh sách shop.</div>;
 
     return (
-        <div className="container mx-auto px-4 py-10 max-w-5xl">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Danh sách các Shop</h1>
-
-            {shops && shops.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {shops.map(shop => (
-                        <div key={shop.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
-                            {shop.logo ? (
-                                <img src={shop.logo} alt={shop.shopName} className="w-24 h-24 object-contain rounded-full mb-4 border border-gray-100" />
-                            ) : (
-                                <div className="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 text-xl font-bold">
-                                    {shop.shopName.charAt(0)}
-                                </div>
-                            )}
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">{shop.shopName}</h3>
-                            <p className="text-sm text-gray-600 flex items-center gap-1"><Mail size={14} /> {shop.email || 'N/A'}</p>
-                            <p className="text-sm text-gray-600 flex items-center gap-1"><Phone size={14} /> {shop.phone || 'N/A'}</p>
-                            <p className="text-sm text-gray-500 flex items-center gap-1 text-center mt-1"><MapPin size={14} /> {shop.address || 'N/A'}</p>
-                            <p className="text-xs text-gray-400 mt-2">Chủ sở hữu: {shop.ownerFullName}</p>
+        <div className="bg-slate-50">
+            <section className="border-b border-slate-200 bg-white">
+                <div className="mx-auto max-w-[1280px] px-4 py-10 lg:px-8">
+                    <div className="max-w-2xl">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                            <Store size={14} /> Danh sách shop
                         </div>
-                    ))}
+                        <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">Khám phá các shop đang bán</h1>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">Tìm shop theo tên, địa chỉ, email hoặc chủ sở hữu. Chọn shop để xem thông tin và sản phẩm đang bán.</p>
+                    </div>
+
+                    <div className="mt-6 flex max-w-2xl items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4">
+                        <Search className="text-slate-400" size={18} />
+                        <input
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            placeholder="Tìm tên shop..."
+                            className="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                        />
+                    </div>
                 </div>
-            ) : (
-                <p className="text-center text-gray-500 py-10">Chưa có shop nào được tạo.</p>
-            )}
+            </section>
+
+            <main className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8">
+                {filteredShops.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                        {filteredShops.map(shop => (
+                            <Link key={shop.id} to={`/shops/${shop.id}`} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-slate-500">
+                                        {shop.logo ? (
+                                            <img src={shop.logo} alt={shop.shopName} className="h-full w-full object-cover" />
+                                        ) : (
+                                            <Store size={24} />
+                                        )}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <h3 className="truncate text-lg font-black text-slate-950 group-hover:text-blue-600">{shop.shopName}</h3>
+                                                <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-slate-400">
+                                                    <UserRound size={13} /> {shop.ownerFullName || 'Chủ shop'}
+                                                </p>
+                                            </div>
+                                            <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-600">{shop.status || 'Đang hoạt động'}</span>
+                                        </div>
+                                        <div className="mt-4 space-y-2 text-sm text-slate-500">
+                                            <p className="flex items-center gap-2"><Mail size={14} /> {shop.email || 'N/A'}</p>
+                                            <p className="flex items-center gap-2"><Phone size={14} /> {shop.phone || 'N/A'}</p>
+                                            <p className="line-clamp-1 flex items-center gap-2"><MapPin size={14} /> {shop.address || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center text-sm text-slate-400">
+                        Không tìm thấy shop phù hợp.
+                    </div>
+                )}
+            </main>
         </div>
     );
 };
