@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'; // Thêm Navig
 
 import LoginPage from '@/features/auth/pages/login-page';
 import RegisterPage from '@/features/auth/pages/register-page';
+import VerifyAccountPage from '@/features/auth/pages/verify-account-page';
 
 import ProfilePage from '@/features/user/pages/profile-page';
 import MyShopPage from '@/features/shop/pages/my-shop-page';
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
             {
                 path: '/register',
                 element: <RegisterPage />,
+            },
+            {
+                path: '/verify-account',
+                element: <VerifyAccountPage />,
             },
         ],
     },

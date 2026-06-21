@@ -10,6 +10,11 @@ export interface RegisterRequest {
     fullName?: string;
 }
 
+export interface VerifyOtpRequest {
+    email: string;
+    otp: string;
+}
+
 export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
@@ -19,6 +24,7 @@ export interface AuthResponse {
         fullName: string;
         email: string;
         roleName: string;
+        status?: string;
         [key: string]: any; // Cho phép các trường mở rộng khác
     };
 }

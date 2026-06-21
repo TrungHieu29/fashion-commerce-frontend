@@ -10,13 +10,23 @@ export const useLogin = () => {
     const setAuth = useAuthStore((state) => state.setAuth);
 
     return useMutation({
-        mutationFn: loginApi,
+        mutationFn: async (payload: Parameters<typeof loginApi>[0]) => {
+            const data = await loginApi(payload);
+
+            if (data.user.status === 'PENDING') {
+                throw new Error('Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email để nhập mã xác thực.');
+            }
+
+            return data;
+        },
 
         onSuccess: (data) => {
             setAuth(
                 {
                     id: data.user.id,
                     username: data.user.username,
+                    email: data.user.email,
+                    status: data.user.status,
                     roles: [data.user.roleName], // Chuyển roleName thành mảng để khớp với Store
                 },
                 data.accessToken

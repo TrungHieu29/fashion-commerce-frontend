@@ -5,6 +5,8 @@ interface User {
     id: number;
     username: string;
     roles: string[];
+    email?: string;
+    status?: string;
 }
 
 interface AuthState {

@@ -14,10 +14,15 @@ export const ProtectedRoute = ({
         useAuthStore(
             (state) => state.isAuthenticated
         );
+    const user = useAuthStore((state) => state.user);
 
     if (!isAuthenticated) {
 
         return <Navigate to="/login" replace />;
+    }
+
+    if (user?.status === 'PENDING') {
+        return <Navigate to={`/verify-account?email=${encodeURIComponent(user.email || '')}`} replace />;
     }
 
     return children;

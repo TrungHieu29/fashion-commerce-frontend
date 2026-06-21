@@ -25,12 +25,25 @@ export const LoginForm = () => {
         mutate(data);
     };
 
+    const errorMessage = (() => {
+        if (!serverError) return '';
+        const responseMessage = (serverError as any).response?.data?.message;
+        const message = responseMessage || (serverError as Error).message || '';
+        const normalized = message.toLowerCase();
+
+        if (normalized.includes('pending') || normalized.includes('chưa được kích hoạt') || normalized.includes('chua duoc kich hoat')) {
+            return 'Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email để nhập mã xác thực.';
+        }
+
+        return 'Tên đăng nhập hoặc mật khẩu không đúng';
+    })();
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {serverError && (
                 <div className="p-3 rounded-lg bg-red-50 text-red-600 text-xs flex items-center gap-2">
                     <AlertCircle size={14} />
-                    <span>Tên đăng nhập hoặc mật khẩu không đúng</span>
+                    <span>{errorMessage}</span>
                 </div>
             )}
             <div className="space-y-1">
