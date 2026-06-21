@@ -31,6 +31,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { ProtectedRoute } from '@/routes/protected-route';
 import CartPage from '@/features/cart/pages/cart-page';
 import ShopShippingPage from '@/features/shop/pages/shop-shipping-page';
+import SellerChatPage from '@/features/chat/pages/seller-chat-page';
 
 export const router = createBrowserRouter([
     {
@@ -66,6 +67,10 @@ export const router = createBrowserRouter([
             {
                 path: '/my-shop/analytics',
                 element: <ShopAnalyticsPage />,
+            },
+            {
+                path: '/my-shop/chat',
+                element: <SellerChatPage />,
             },
             {
                 path: '/my-shop/profile', // Khớp chuẩn 100% với to: '/my-shop/profile' ở Sidebar

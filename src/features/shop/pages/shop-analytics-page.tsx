@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import {
     ArrowLeft,
     ChevronRight,
-    CreditCard,
     DollarSign,
     TrendingUp,
     Wallet,
     Calendar,
     ShoppingBag,
-    Percent
+    Percent,
+    Download
 } from 'lucide-react';
 import {
     Area,
@@ -23,6 +23,7 @@ import {
     YAxis
 } from 'recharts';
 import { useMyShop, useShopAnalytics } from '../hooks/use-shop';
+import { exportToExcel } from '@/utils/export';
 
 // ==========================================
 // INTERFACES CHUẨN THƯƠNG MẠI ĐIỆN TỬ
@@ -62,6 +63,28 @@ const ShopAnalyticsPage = () => {
     const chartData = useMemo(() => {
         return analytics?.timelineRevenue || [];
     }, [analytics?.timelineRevenue]);
+
+    // Hàm xử lý xuất dữ liệu ra file Excel (.xlsx) qua Utils
+    const handleExport = () => {
+        if (!analytics || !analytics.timelineRevenue || analytics.timelineRevenue.length === 0) {
+            return;
+        }
+
+        // 1. Định dạng lại mảng dữ liệu thô để đưa vào Excel cho người dùng dễ đọc
+        const excelData = analytics.timelineRevenue.map((item) => ({
+            time: item.label,
+            revenue: item.revenue,
+            orders: item.orderCount
+        }));
+
+        // 2. Gọi hàm export từ utils
+        exportToExcel({
+            data: excelData,
+            fileName: `Bao_Cao_Doanh_Thu_Shop_${timePeriod}`,
+            sheetName: 'Doanh Thu',
+            headers: ['Mốc Thời Gian', 'Doanh Thu (VNĐ)', 'Số Lượng Đơn Hàng']
+        });
+    };
 
     // Trạng thái Loading kết hợp cả Shop và Analytics
     if (isShopLoading || isAnalyticsLoading) {
@@ -108,25 +131,38 @@ const ShopAnalyticsPage = () => {
                         <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900 lg:text-3xl uppercase">Báo cáo hiệu suất kinh doanh</h1>
                     </div>
 
-                    {/* Bộ bấm chuyển đổi Tab thời gian kiểu Shopee */}
-                    <div className="flex items-center p-1 bg-slate-200/70 rounded-xl w-fit self-start lg:self-center">
+                    {/* CỤM ĐIỀU KHIỂN: TAB THỜI GIAN & NÚT XUẤT FILE EXCEL */}
+                    <div className="flex flex-wrap items-center gap-3 self-start lg:self-center">
+                        {/* Bộ bấm chuyển đổi Tab thời gian kiểu Shopee */}
+                        <div className="flex items-center p-1 bg-slate-200/70 rounded-xl w-fit">
+                            <button
+                                onClick={() => setTimePeriod('today')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${timePeriod === 'today' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                            >
+                                Hôm nay
+                            </button>
+                            <button
+                                onClick={() => setTimePeriod('7days')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${timePeriod === '7days' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                            >
+                                7 ngày qua
+                            </button>
+                            <button
+                                onClick={() => setTimePeriod('30days')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${timePeriod === '30days' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                            >
+                                30 ngày qua
+                            </button>
+                        </div>
+
+                        {/* NÚT XUẤT EXCEL THỰC TẾ */}
                         <button
-                            onClick={() => setTimePeriod('today')}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${timePeriod === 'today' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                            onClick={handleExport}
+                            disabled={!chartData.length}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold rounded-xl shadow-sm transition-all h-[36px]"
                         >
-                            Hôm nay
-                        </button>
-                        <button
-                            onClick={() => setTimePeriod('7days')}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${timePeriod === '7days' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
-                        >
-                            7 ngày qua
-                        </button>
-                        <button
-                            onClick={() => setTimePeriod('30days')}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${timePeriod === '30days' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
-                        >
-                            30 ngày qua
+                            <Download size={14} />
+                            Xuất Excel
                         </button>
                     </div>
                 </div>

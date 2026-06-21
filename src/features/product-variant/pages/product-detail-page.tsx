@@ -5,7 +5,8 @@ import {
     Star,
     ShoppingCart,
     ShieldCheck,
-    Package // Thêm icon Package vào đây
+    Package,
+    MessageSquare // 1. Thêm icon MessageSquare ở đây
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -18,17 +19,19 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import type { ProductImageResponse } from '../types/variant.types';
 
+// 2. Import useChatStore để điều khiển đóng/mở Chat Box
+import { useChatStore } from '@/stores/use.chat.store';
+
 const ProductDetailPage = () => {
     const { id } = useParams();
-
     const navigate = useNavigate();
 
-    const isAuthenticated = useAuthStore(
-        (state) => state.isAuthenticated
-    );
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    const { user, token } = useAuthStore(); // Lấy thêm thông tin user và token
 
-    const { data: product, isLoading, isError } =
-        useProductDetail(id);
+    // Lấy hàm mở chat từ zustand store
+
+    const { data: product, isLoading, isError } = useProductDetail(id);
 
     // Lấy danh sách ảnh theo sản phẩm
     const { data: productImages } = useQuery<ProductImageResponse[]>({
@@ -44,7 +47,6 @@ const ProductDetailPage = () => {
     const [isViewAll, setIsViewAll] = useState(false);
     const [reviewPage, setReviewPage] = useState(0);
 
-    // Nếu chưa ấn "Xem tất cả", lấy 3 cái rating cao nhất. Nếu đã ấn, lấy theo trang.
     const { data: reviewsData, isLoading: isLoadingReviews } = useProductReviews(
         Number(id),
         reviewPage,
@@ -52,28 +54,19 @@ const ProductDetailPage = () => {
         'rating,desc'
     );
 
-    const { mutate: addToCart, isPending: isAdding } =
-        useAddToCart();
+    const { mutate: addToCart, isPending: isAdding } = useAddToCart();
 
     // =========================
     // STATE
     // =========================
-
-    const [selectedSize, setSelectedSize] =
-        useState<string | null>(null);
-
-    const [selectedColor, setSelectedColor] =
-        useState<string | null>(null);
-
+    const [selectedSize, setSelectedSize] = useState<string | null>(null);
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
-
     const [mainImage, setMainImage] = useState<string | null>(null);
 
     // =========================
     // RESET QUANTITY
     // =========================
-
-    // Fix lỗi fresh trang hooks
     useEffect(() => {
         setQuantity(1);
     }, [selectedSize, selectedColor]);
@@ -88,86 +81,99 @@ const ProductDetailPage = () => {
                 setMainImage(colorImage.imageUrl);
             }
         } else if (productImages && productImages.length > 0) {
-            // Hiển thị ảnh đầu tiên trong danh sách nếu chưa chọn màu
             setMainImage(productImages[0].imageUrl);
         } else if (product?.imageUrl) {
             setMainImage(product.imageUrl);
         }
     }, [selectedColor, productImages, product]);
 
-    // =========================
-    // LOADING
-    // =========================
+    const openChatPopup = useChatStore((state) => state.openChatPopup);
 
+    const handleChatWithShop = async () => {
+        if (!product) return;
+
+        if (!isAuthenticated || !user || !token) {
+            toast.error('Vui lòng đăng nhập để chat với shop!');
+            navigate('/login');
+            return;
+        }
+
+        // 1. connect websocket (OK)
+        useChatStore.getState().connectWebSocket(token);
+
+        try {
+            const response = await api.get('/api/conversations/get-or-create', {
+                params: {
+                    userId: user.id,
+                    shopId: product.shopId
+                }
+            });
+
+            const conversation = response.data;
+
+            if (conversation) {
+                // 2. quan trọng: seed conversation vào store luôn
+                useChatStore.setState((state) => ({
+                    conversationsMap: {
+                        ...state.conversationsMap,
+                        [conversation.id]: {
+                            id: conversation.id,
+                            userId: conversation.userId,
+                            userName: conversation.userName,
+                            userAvatar: conversation.userAvatar,
+                            shopId: conversation.shopId,
+                            shopName: conversation.shopName,
+                            shopLogo: conversation.shopLogo,
+                            lastMessage: conversation.lastMessage || '',
+                            updatedAt: conversation.updatedAt || new Date().toISOString(),
+                            unreadCount: 0,
+                        }
+                    }
+                }));
+
+                // 3. mở popup
+                openChatPopup(conversation.id, conversation.shopName);
+            }
+
+        } catch (error) {
+            toast.error('Không thể kết nối tới phòng chat.');
+        }
+    };
+    // =========================
+    // LOADING & ERROR
+    // =========================
     if (isLoading) {
-        return (
-            <div className="flex h-96 items-center justify-center">
-                Đang tải...
-            </div>
-        );
+        return <div className="flex h-96 items-center justify-center">Đang tải...</div>;
     }
 
     if (isError || !product) {
-        return (
-            <div className="py-20 text-center">
-                Không tìm thấy sản phẩm.
-            </div>
-        );
+        return <div className="py-20 text-center">Không tìm thấy sản phẩm.</div>;
     }
 
     // =========================
     // VARIANT LOGIC
     // =========================
+    const hasVariants = product.variants && product.variants.length > 0;
+    const allSizes = Array.from(new Set(product.variants.map((v) => v.size)));
+    const allColors = Array.from(new Set(product.variants.map((v) => v.color)));
 
-    const hasVariants =
-        product.variants &&
-        product.variants.length > 0;
-
-    const allSizes = Array.from(
-        new Set(product.variants.map((v) => v.size))
-    );
-
-    const allColors = Array.from(
-        new Set(product.variants.map((v) => v.color))
-    );
-
-    // Chỉ disable variant không tồn tại
     const availableSizes = selectedColor
-        ? product.variants
-            .filter(
-                (v) => v.color === selectedColor
-            )
-            .map((v) => v.size)
+        ? product.variants.filter((v) => v.color === selectedColor).map((v) => v.size)
         : allSizes;
 
     const availableColors = selectedSize
-        ? product.variants
-            .filter(
-                (v) => v.size === selectedSize
-            )
-            .map((v) => v.color)
+        ? product.variants.filter((v) => v.size === selectedSize).map((v) => v.color)
         : allColors;
 
-    // Variant đang chọn
     const selectedVariant = product.variants.find(
-        (v) =>
-            v.size === selectedSize &&
-            v.color === selectedColor
+        (v) => v.size === selectedSize && v.color === selectedColor
     );
 
-    // Đã chọn đủ variant chưa
-    const isVariantSelected =
-        !hasVariants || !!selectedVariant;
+    const isVariantSelected = !hasVariants || !!selectedVariant;
+    const isOutOfStock = selectedVariant ? Number(selectedVariant.stock) <= 0 : false;
 
-    // Hết hàng
-    const isOutOfStock = selectedVariant
-        ? Number(selectedVariant.stock) <= 0
-        : false;
-
-    // Logic hiển thị Badge giảm giá
     const renderDiscountBadge = () => {
         if (!product.discountAmount || product.discountAmount <= 0) return null;
-
         const percent = Math.round((product.discountAmount / product.originalPrice) * 100);
         return (
             <span className="bg-red-50 text-red-600 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-tight">
@@ -176,62 +182,36 @@ const ProductDetailPage = () => {
         );
     };
 
-    // =========================
-    // TOGGLE
-    // =========================
-
     const toggleSize = (size: string) => {
-        setSelectedSize(
-            selectedSize === size ? null : size
-        );
+        setSelectedSize(selectedSize === size ? null : size);
     };
 
     const toggleColor = (color: string) => {
-        setSelectedColor(
-            selectedColor === color ? null : color
-        );
+        setSelectedColor(selectedColor === color ? null : color);
     };
 
     // =========================
     // ADD TO CART
     // =========================
-
     const handleAddToCart = () => {
-        // Chưa chọn variant
-        if (
-            hasVariants &&
-            !selectedVariant
-        ) {
-            toast.warning(
-                'Vui lòng chọn đầy đủ Size và Màu sắc!'
-            );
-
+        if (hasVariants && !selectedVariant) {
+            toast.warning('Vui lòng chọn đầy đủ Size và Màu sắc!');
             return;
         }
 
-        // Hết hàng
         if (isOutOfStock) {
-            toast.error(
-                'Sản phẩm hiện đã hết hàng'
-            );
-
+            toast.error('Sản phẩm hiện đã hết hàng');
             return;
         }
 
-        // Chưa đăng nhập
         if (!isAuthenticated) {
-            toast.error(
-                'Vui lòng đăng nhập để mua sắm!'
-            );
-
+            toast.error('Vui lòng đăng nhập để mua sắm!');
             navigate('/login');
-
             return;
         }
 
         addToCart({
-            productVariantId:
-                selectedVariant?.id || 0,
+            productVariantId: selectedVariant?.id || 0,
             quantity
         });
     };
@@ -239,10 +219,7 @@ const ProductDetailPage = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             {/* BACK */}
-            <Link
-                to="/"
-                className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-blue-600"
-            >
+            <Link to="/" className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-blue-600">
                 <ChevronLeft size={16} />
                 Quay lại danh sách
             </Link>
@@ -268,9 +245,7 @@ const ProductDetailPage = () => {
                                 {product.brandName}
                             </span>
                         )}
-                        {product.brandName && product.categoryName && (
-                            <span className="text-[11px] text-[#9CA3AF]">/</span>
-                        )}
+                        {product.brandName && product.categoryName && <span className="text-[11px] text-[#9CA3AF]">/</span>}
                         {product.categoryName && (
                             <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-tight">
                                 {product.categoryName}
@@ -279,9 +254,7 @@ const ProductDetailPage = () => {
                     </div>
 
                     {/* TITLE */}
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        {product.productName}
-                    </h1>
+                    <h1 className="text-3xl font-bold text-gray-900">{product.productName}</h1>
 
                     {/* PRICE */}
                     <div className="mt-4 flex items-center gap-4">
@@ -295,9 +268,7 @@ const ProductDetailPage = () => {
                                 {product.finalPrice.toLocaleString()}đ
                             </span>
                         </div>
-
                         {renderDiscountBadge()}
-
                         <div className="flex items-center gap-1 font-bold text-amber-500">
                             <Star size={18} fill="currentColor" />
                             {product.rating}
@@ -313,40 +284,17 @@ const ProductDetailPage = () => {
                     <div className="mt-8 space-y-6">
                         {/* SIZE */}
                         <div>
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">
-                                Chọn Size
-                            </h3>
-
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">Chọn Size</h3>
                             <div className="mt-3 flex flex-wrap gap-3">
                                 {allSizes.map((size) => (
                                     <button
                                         key={size}
-                                        onClick={() =>
-                                            toggleSize(
-                                                size
-                                            )
-                                        }
-                                        disabled={
-                                            !availableSizes.includes(
-                                                size
-                                            )
-                                        }
-                                        className={`
-                                            rounded-lg border px-4 py-2 text-sm font-medium transition-all
-
-                                            ${selectedSize ===
-                                                size
-                                                ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
-                                                : 'border-gray-200 text-gray-700 hover:border-gray-400'
-                                            }
-
-                                            ${!availableSizes.includes(
-                                                size
-                                            )
-                                                ? 'cursor-not-allowed opacity-40'
-                                                : ''
-                                            }
-                                        `}
+                                        onClick={() => toggleSize(size)}
+                                        disabled={!availableSizes.includes(size)}
+                                        className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all ${selectedSize === size
+                                            ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
+                                            : 'border-gray-200 text-gray-700 hover:border-gray-400'
+                                            } ${!availableSizes.includes(size) ? 'cursor-not-allowed opacity-40' : ''}`}
                                     >
                                         {size}
                                     </button>
@@ -356,133 +304,55 @@ const ProductDetailPage = () => {
 
                         {/* COLOR */}
                         <div>
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">
-                                Chọn Màu sắc
-                            </h3>
-
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">Chọn Màu sắc</h3>
                             <div className="mt-3 flex flex-wrap gap-3">
-                                {allColors.map(
-                                    (color) => (
-                                        <button
-                                            key={
-                                                color
-                                            }
-                                            onClick={() =>
-                                                toggleColor(
-                                                    color
-                                                )
-                                            }
-                                            disabled={
-                                                !availableColors.includes(
-                                                    color
-                                                )
-                                            }
-                                            className={`
-                                                rounded-lg border px-4 py-2 text-sm font-medium transition-all
-
-                                                ${selectedColor ===
-                                                    color
-                                                    ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
-                                                    : 'border-gray-200 text-gray-700 hover:border-gray-400'
-                                                }
-
-                                                ${!availableColors.includes(
-                                                    color
-                                                )
-                                                    ? 'cursor-not-allowed opacity-40'
-                                                    : ''
-                                                }
-                                            `}
-                                        >
-                                            {
-                                                color
-                                            }
-                                        </button>
-                                    )
-                                )}
+                                {allColors.map((color) => (
+                                    <button
+                                        key={color}
+                                        onClick={() => toggleColor(color)}
+                                        disabled={!availableColors.includes(color)}
+                                        className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all ${selectedColor === color
+                                            ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
+                                            : 'border-gray-200 text-gray-700 hover:border-gray-400'
+                                            } ${!availableColors.includes(color) ? 'cursor-not-allowed opacity-40' : ''}`}
+                                    >
+                                        {color}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
                         {/* STOCK */}
                         {selectedVariant && (
                             <div className="mt-4">
-                                <p
-                                    className={`text-sm font-medium ${isOutOfStock
-                                        ? 'text-red-500'
-                                        : 'text-gray-600'
-                                        }`}
-                                >
-                                    {isOutOfStock
-                                        ? 'Sản phẩm hiện đã hết hàng'
-                                        : `Còn lại ${selectedVariant.stock} sản phẩm`}
+                                <p className={`text-sm font-medium ${isOutOfStock ? 'text-red-500' : 'text-gray-600'}`}>
+                                    {isOutOfStock ? 'Sản phẩm hiện đã hết hàng' : `Còn lại ${selectedVariant.stock} sản phẩm`}
                                 </p>
                             </div>
                         )}
                     </div>
 
-                    {/* ACTION */}
+                    {/* ACTION BUTTONS SECTION */}
                     <div className="mt-10 flex flex-wrap items-center gap-4">
                         {/* QUANTITY */}
                         <div className="flex items-center rounded-lg border border-gray-300">
-                            <button
-                                onClick={() =>
-                                    setQuantity((q) =>
-                                        Math.max(
-                                            1,
-                                            q - 1
-                                        )
-                                    )
-                                }
-                                className="px-4 py-2 text-xl"
-                            >
-                                -
-                            </button>
-
-                            <span className="w-12 text-center font-bold">
-                                {quantity}
-                            </span>
-
+                            <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="px-4 py-2 text-xl">-</button>
+                            <span className="w-12 text-center font-bold">{quantity}</span>
                             <button
                                 onClick={() => {
-                                    // Chưa chọn variant
-                                    if (
-                                        !selectedVariant
-                                    ) {
-                                        toast.warning(
-                                            'Vui lòng chọn phân loại trước'
-                                        );
-
+                                    if (!selectedVariant) {
+                                        toast.warning('Vui lòng chọn phân loại trước');
                                         return;
                                     }
-
-                                    // Hết hàng
-                                    if (
-                                        isOutOfStock
-                                    ) {
-                                        toast.error(
-                                            'Sản phẩm hiện đã hết hàng'
-                                        );
-
+                                    if (isOutOfStock) {
+                                        toast.error('Sản phẩm hiện đã hết hàng');
                                         return;
                                     }
-
-                                    // Không vượt stock
-                                    if (
-                                        quantity >=
-                                        Number(
-                                            selectedVariant.stock
-                                        )
-                                    ) {
-                                        toast.warning(
-                                            `Chỉ còn ${selectedVariant.stock} sản phẩm`
-                                        );
-
+                                    if (quantity >= Number(selectedVariant.stock)) {
+                                        toast.warning(`Chỉ còn ${selectedVariant.stock} sản phẩm`);
                                         return;
                                     }
-
-                                    setQuantity(
-                                        (q) => q + 1
-                                    );
+                                    setQuantity((q) => q + 1);
                                 }}
                                 className="px-4 py-2 text-xl"
                             >
@@ -490,42 +360,31 @@ const ProductDetailPage = () => {
                             </button>
                         </div>
 
+                        {/* 3. NÚT CHAT NGAY ĐƯỢC THÊM VÀO ĐÂY */}
+                        <button
+                            onClick={handleChatWithShop}
+                            className="flex flex-col items-center justify-center border border-slate-200 text-slate-700 hover:bg-slate-50 h-12 px-5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+                        >
+                            <MessageSquare size={18} className="text-slate-900 mb-0.5" />
+                            <span>Chat ngay</span>
+                        </button>
+
                         {/* ADD TO CART */}
                         <button
-                            onClick={
-                                handleAddToCart
-                            }
-                            disabled={
-                                isAdding
-                            }
-                            className={`
-                                flex flex-1 items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-lg font-bold text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-70
-
-                                ${isAdding
-                                    ? 'bg-gray-400'
-                                    : 'bg-blue-600 hover:bg-blue-700'
-                                }
-                            `}
+                            onClick={handleAddToCart}
+                            disabled={isAdding}
+                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-lg font-bold text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 ${isAdding ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+                                }`}
                         >
-                            {!isAdding && (
-                                <ShoppingCart
-                                    size={20}
-                                />
-                            )}
-
-                            {isAdding
-                                ? 'Đang thêm...'
-                                : !isVariantSelected
-                                    ? 'Chọn phân loại'
-                                    : 'Thêm vào giỏ hàng'}
+                            {!isAdding && <ShoppingCart size={20} />}
+                            {isAdding ? 'Đang thêm...' : !isVariantSelected ? 'Chọn phân loại' : 'Thêm vào giỏ hàng'}
                         </button>
                     </div>
 
                     {/* WARRANTY */}
                     <div className="mt-8 flex items-center gap-2 text-sm font-medium text-green-600">
                         <ShieldCheck size={18} />
-                        Bảo hành chính hãng
-                        12 tháng
+                        Bảo hành chính hãng 12 tháng
                     </div>
 
                     {/* REVIEWS SECTION */}
@@ -587,12 +446,16 @@ const ProductDetailPage = () => {
                                             disabled={reviewPage === 0}
                                             onClick={() => setReviewPage(p => p - 1)}
                                             className="px-6 py-2 border rounded-xl text-xs font-bold disabled:opacity-30 hover:bg-gray-50"
-                                        >Trang trước</button>
+                                        >
+                                            Trang trước
+                                        </button>
                                         <button
                                             disabled={reviewPage >= reviewsData.totalPages - 1}
                                             onClick={() => setReviewPage(p => p + 1)}
                                             className="px-6 py-2 border rounded-xl text-xs font-bold disabled:opacity-30 hover:bg-gray-50"
-                                        >Trang sau</button>
+                                        >
+                                            Trang sau
+                                        </button>
                                     </div>
                                 )}
                             </div>

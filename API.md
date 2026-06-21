@@ -486,11 +486,6 @@ DELETE
 conversation-controller
 
 
-GET
-/api/conversations
-
-
-
 POST
 /api/conversations
 
@@ -508,6 +503,11 @@ GET
 
 GET
 /api/conversations/shops/{shopId}
+
+
+
+GET
+/api/conversations/get-or-create
 
 
 auth-controller
@@ -554,6 +554,20 @@ GET
 
 GET
 /api/order-items/order-shop/{orderShopId}
+
+
+dash-board-controller
+
+
+GET
+/api/dashboard/shop/{shopId}
+
+
+shop-analytics-controller
+
+
+GET
+/api/dashboard/shop/{shopId}/analytics
 
 
 
@@ -820,7 +834,7 @@ payment	PaymentResponseDto{...}
 }
 MessageRequestDto{
 conversationId*	[...]
-senderId*	[...]
+senderId	[...]
 content*	[...]
 }
 MessageResponseDto{
@@ -882,9 +896,9 @@ sort	[...]
 PageReviewResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -895,8 +909,8 @@ empty	[...]
 PageableObject{
 offset	[...]
 sort	[...]
-pageNumber	[...]
 pageSize	[...]
+pageNumber	[...]
 paged	[...]
 unpaged	[...]
 }
@@ -910,9 +924,9 @@ ignoreCase	[...]
 PageProductResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -923,9 +937,9 @@ empty	[...]
 PageOrderResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -936,9 +950,9 @@ empty	[...]
 PageOrderShopResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -949,9 +963,9 @@ empty	[...]
 PageOrderItemResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -962,9 +976,9 @@ empty	[...]
 PageMessageResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -975,9 +989,9 @@ empty	[...]
 PageDiscountResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
@@ -985,12 +999,47 @@ sort	[...]
 pageable	PageableObject{...}
 empty	[...]
 }
+OrderStatusStatisticResponse{
+status	[...]
+count	[...]
+}
+RecentOrderResponse{
+orderShopId	[...]
+orderId	[...]
+customerName	[...]
+status	[...]
+finalPrice	[...]
+createdAt	[...]
+}
+ShopDashboardResponse{
+totalRevenue	[...]
+totalOrders	[...]
+pendingOrders	[...]
+totalCustomers	[...]
+activeProducts	[...]
+lowStockProducts	[...]
+orderStatusStatistics	[...]
+recentOrders	[...]
+}
+ShopAnalyticsResponseDto{
+totalRevenue	[...]
+averageOrderValue	[...]
+growthRate	[...]
+totalOrders	[...]
+conversionRate	[...]
+timelineRevenue	[...]
+}
+TimelineDataDto{
+label	[...]
+revenue	[...]
+orderCount	[...]
+}
 PageConversationResponseDto{
 totalElements	[...]
 totalPages	[...]
+numberOfElements	[...]
 first	[...]
 last	[...]
-numberOfElements	[...]
 size	[...]
 content	[...]
 number	[...]
