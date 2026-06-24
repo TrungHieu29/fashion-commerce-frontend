@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Toaster } from 'sonner';
 import { Navbar } from '@/components/layout/navbar';
 import { ChatLauncher } from '@/features/chat/components/chat-launcher';
 import { useAuthStore } from '@/stores/auth.store';
@@ -23,7 +22,6 @@ const MainLayout = () => {
 
     return (
         <div className="relative min-h-screen">
-            <Toaster position="top-right" richColors />
             <Navbar />
 
             <main>

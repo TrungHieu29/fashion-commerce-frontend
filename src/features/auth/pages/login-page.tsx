@@ -1,14 +1,23 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldCheck, ShoppingBag } from 'lucide-react';
+import { AlertCircle, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import { LoginForm } from '../components/login-form';
 
 const LoginPage = () => {
     const location = useLocation();
+    const message =
+        sessionStorage.getItem('auth-message') ||
+        (location.state as { authMessage?: string } | null)?.authMessage ||
+        '';
 
     useEffect(() => {
-        const message = (location.state as { authMessage?: string } | null)?.authMessage;
+        const storedMessage = sessionStorage.getItem('auth-message');
+        if (storedMessage) {
+            sessionStorage.removeItem('auth-message');
+        }
+
+        const message = storedMessage || (location.state as { authMessage?: string } | null)?.authMessage;
         if (message) {
             toast.error(message);
         }
@@ -66,6 +75,13 @@ const LoginPage = () => {
                                 Nhập tài khoản của bạn để truy cập giỏ hàng, đơn mua và kênh người bán.
                             </p>
                         </div>
+
+                        {message && (
+                            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                                <AlertCircle className="mt-0.5 shrink-0" size={18} />
+                                <span>{message}</span>
+                            </div>
+                        )}
 
                         <LoginForm />
 

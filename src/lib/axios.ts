@@ -3,6 +3,11 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth.store';
 import { getUserStatusMessage } from './status-messages';
 
+const LOGIN_PATH = '/login';
+const AUTH_MESSAGE_KEY = 'auth-message';
+const SESSION_EXPIRED_MESSAGE = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+let isRedirectingToLogin = false;
+
 const api = axios.create({
     baseURL: 'http://localhost:8080',
     headers: {
@@ -13,9 +18,16 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = useAuthStore.getState().token;
+
         if (token) {
+            if (isJwtExpired(token)) {
+                endAuthSession(SESSION_EXPIRED_MESSAGE);
+                return Promise.reject(new axios.CanceledError(SESSION_EXPIRED_MESSAGE));
+            }
+
             config.headers.Authorization = `Bearer ${token}`;
         }
+
         return config;
     },
     (error) => Promise.reject(error)
@@ -38,14 +50,9 @@ api.interceptors.response.use(
             const currentUserStatus = useAuthStore.getState().user?.status;
             const message = isAccountStatusError
                 ? getUserStatusMessage(extractUserStatus(serverMessage) || currentUserStatus)
-                : 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                : SESSION_EXPIRED_MESSAGE;
 
-            useAuthStore.getState().logout();
-            toast.error(message);
-
-            if (!window.location.pathname.startsWith('/login')) {
-                window.location.href = '/login';
-            }
+            endAuthSession(message);
         }
 
         return Promise.reject(error);
@@ -58,6 +65,44 @@ const extractUserStatus = (message?: string) => {
     if (upperMessage.includes('INACTIVE')) return 'INACTIVE';
     if (upperMessage.includes('BANNED')) return 'BANNED';
     return undefined;
+};
+
+const isJwtExpired = (token: string) => {
+    try {
+        const [, payload] = token.split('.');
+        if (!payload) return false;
+
+        const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const decodedPayload = JSON.parse(window.atob(normalizedPayload));
+        const exp = decodedPayload?.exp;
+
+        if (typeof exp !== 'number') return false;
+
+        return exp * 1000 <= Date.now() + 5000;
+    } catch {
+        return false;
+    }
+};
+
+const endAuthSession = (message: string) => {
+    if (isRedirectingToLogin) return;
+
+    isRedirectingToLogin = true;
+    useAuthStore.getState().logout();
+
+    try {
+        sessionStorage.setItem(AUTH_MESSAGE_KEY, message);
+    } catch {
+        // Storage can fail in private modes; redirect remains the important part.
+    }
+
+    if (window.location.pathname.startsWith(LOGIN_PATH)) {
+        toast.error(message);
+        isRedirectingToLogin = false;
+        return;
+    }
+
+    window.location.replace(LOGIN_PATH);
 };
 
 export { api };
