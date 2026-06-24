@@ -8,8 +8,10 @@ const AUTH_MESSAGE_KEY = 'auth-message';
 const SESSION_EXPIRED_MESSAGE = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
 let isRedirectingToLogin = false;
 
+const API_URL = import.meta.env.VITE_API_URL.replace(/\/$/, '');
+
 const api = axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },

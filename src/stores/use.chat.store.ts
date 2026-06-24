@@ -58,6 +58,9 @@ interface ChatState {
     updateConversation: (conversationId: number, message: ChatMessage) => void;
 }
 
+const API_URL = import.meta.env.VITE_API_URL.replace(/\/$/, '');
+const WS_URL = `${API_URL}/ws`;
+
 export const useChatStore = create<ChatState>((set, get) => ({
     stompClient: null,
     isConnected: false,
@@ -74,7 +77,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         if (get().stompClient) return;
 
         const client = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            webSocketFactory: () => new SockJS(WS_URL),
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },
