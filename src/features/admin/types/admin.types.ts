@@ -40,6 +40,12 @@ export interface AdminProduct {
     brandName?: string;
     categoryId?: number;
     categoryName?: string;
+    categoryIds?: number[];
+    categories?: Array<{
+        id: number;
+        name?: string;
+        categoryName?: string;
+    }>;
     createdAt?: string;
 }
 

@@ -3,7 +3,7 @@ import { Building2, Mail, MapPin, Phone, Search, Trash2 } from 'lucide-react';
 import { AdminEmptyState, AdminPageHeader, AdminStatusBadge } from '../components/admin-ui';
 import { useAdminShops, useDeleteAdminShop, useUpdateAdminShopStatus } from '../hooks/use-admin';
 
-const SHOP_STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
+const SHOP_STATUS_OPTIONS = ['PENDING', 'ACTIVE', 'INACTIVE', 'BANNED', 'REJECTED'];
 
 const AdminShopsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +44,7 @@ const AdminShopsPage = () => {
                                             <p className="mt-1 text-xs font-semibold text-slate-400">Chủ shop: {shop.ownerFullName || 'Chưa rõ'}</p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
-                                            <AdminStatusBadge tone={shop.status === 'ACTIVE' ? 'green' : shop.status === 'SUSPENDED' ? 'red' : 'slate'}>{shop.status || 'UNKNOWN'}</AdminStatusBadge>
+                                            <AdminStatusBadge tone={shop.status === 'ACTIVE' ? 'green' : shop.status === 'BANNED' || shop.status === 'REJECTED' ? 'red' : shop.status === 'PENDING' ? 'amber' : 'slate'}>{shop.status || 'UNKNOWN'}</AdminStatusBadge>
                                             <select
                                                 value={shop.status || 'ACTIVE'}
                                                 onChange={(event) => updateShopStatus.mutate({ shop, status: event.target.value })}

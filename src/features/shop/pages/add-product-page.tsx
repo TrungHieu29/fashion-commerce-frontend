@@ -7,6 +7,20 @@ import { toast } from 'sonner';
 import { createProduct } from '@/features/product/api/product.api';
 import { useMyShop } from '../hooks/use-shop';
 import { api } from '@/lib/axios';
+import { CategoryPicker } from '../components/category-picker';
+
+interface ProductFormValues {
+    productName: string;
+    productDetail: string;
+    price: number;
+    categoryIds: string[];
+    brandId: string;
+    variants: Array<{
+        size: string;
+        color: string;
+        stock: number;
+    }>;
+}
 
 const AddProductPage = () => {
     const navigate = useNavigate();
@@ -14,12 +28,12 @@ const AddProductPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [colorImages, setColorImages] = useState<Record<string, File>>({});
 
-    const { register, control, handleSubmit, watch, formState: { errors } } = useForm({
+    const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormValues>({
         defaultValues: {
             productName: '',
             productDetail: '',
             price: 0,
-            categoryId: '',
+            categoryIds: [],
             brandId: '',
             variants: [{ size: '', color: '', stock: 0 }]
         }
@@ -49,6 +63,7 @@ const AddProductPage = () => {
 
     // Lấy danh sách các màu duy nhất từ variants để hiển thị phần upload ảnh
     const watchedVariants = useWatch({ control, name: 'variants' });
+    const selectedCategoryIds = watch('categoryIds') || [];
     const uniqueColors = useMemo(() => {
         const colorMap = new Map<string, string>(); // lowercase -> original
 
@@ -78,6 +93,15 @@ const AddProductPage = () => {
             return;
         }
 
+        const categoryIds = Array.isArray(data.categoryIds)
+            ? data.categoryIds.map(Number).filter(Number.isFinite)
+            : [];
+
+        if (categoryIds.length === 0) {
+            toast.error('Vui lòng chọn ít nhất một danh mục cho sản phẩm.');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // 1. Tạo sản phẩm chính
@@ -86,7 +110,7 @@ const AddProductPage = () => {
                 productDetail: data.productDetail,
                 price: data.price,
                 shopId: shop.id,
-                categoryId: parseInt(data.categoryId),
+                categoryIds,
                 brandId: parseInt(data.brandId),
                 status: 'ACTIVE'
             };
@@ -164,13 +188,11 @@ const AddProductPage = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase">Danh mục</label>
-                                <select
-                                    {...register('categoryId', { required: true })}
-                                    className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl outline-none focus:border-[#111111]"
-                                >
-                                    <option value="">Chọn danh mục</option>
-                                    {categories?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
+                                <CategoryPicker
+                                    categories={categories || []}
+                                    value={selectedCategoryIds}
+                                    onChange={(nextValue) => setValue('categoryIds', nextValue, { shouldValidate: true })}
+                                />
                             </div>
                             <div>
                                 <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase">Thương hiệu</label>

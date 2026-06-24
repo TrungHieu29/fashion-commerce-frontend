@@ -9,6 +9,8 @@ import { useMyShop } from '../hooks/use-shop';
 import { api } from '@/lib/axios';
 import type { ProductVariantResponse } from '@/features/product-variant/types/variant.types';
 import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
+import { getProductCategoryIds } from '@/features/product/types/product.types';
+import { CategoryPicker } from '../components/category-picker';
 
 interface FormProductVariant extends Partial<Omit<ProductVariantResponse, 'productId' | 'priceAdjustment' | 'sku'>> {
     size: string;
@@ -20,7 +22,7 @@ interface ProductFormValues {
     productName: string;
     productDetail: string;
     price: number;
-    categoryId: string;
+    categoryIds: string[];
     brandId: string;
     variants: FormProductVariant[];
 }
@@ -71,12 +73,12 @@ const EditProductPage = () => {
         }
     });
 
-    const { register, control, handleSubmit, reset, watch, formState: { errors } } = useForm<ProductFormValues>({
+    const { register, control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ProductFormValues>({
         defaultValues: {
             productName: '',
             productDetail: '',
             price: 0,
-            categoryId: '',
+            categoryIds: [],
             brandId: '',
             variants: []
         }
@@ -87,6 +89,7 @@ const EditProductPage = () => {
         name: "variants"
     });
 
+    const selectedCategoryIds = watch('categoryIds') || [];
     const watchedVariants = useWatch({ control, name: 'variants' });
     const uniqueColors = useMemo(() => {
         const colorMap = new Map<string, string>(); // lowercase -> original
@@ -119,7 +122,7 @@ const EditProductPage = () => {
                 productName: product.productName,
                 productDetail: product.productDetail,
                 price: product.originalPrice, // Sử dụng originalPrice để điền vào form
-                categoryId: product.categoryId.toString(),
+                categoryIds: getProductCategoryIds(product).map(String),
                 brandId: product.brandId.toString(),
                 variants: (variants || []).map((v: ProductVariantResponse) => ({
                     id: v.id,
@@ -133,13 +136,22 @@ const EditProductPage = () => {
 
     const onSubmit = async (data: ProductFormValues) => {
         if (!shop || !id) return;
+        const categoryIds = Array.isArray(data.categoryIds)
+            ? data.categoryIds.map(Number).filter(Number.isFinite)
+            : [];
+
+        if (categoryIds.length === 0) {
+            toast.error('Vui lòng chọn ít nhất một danh mục cho sản phẩm.');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             await updateProduct(Number(id), {
                 ...data,
                 shopId: shop.id, // Đảm bảo shopId được gửi
                 originalPrice: Number(data.price), // Gửi originalPrice từ form
-                categoryId: Number(data.categoryId), // Chuyển đổi sang số
+                categoryIds,
                 brandId: Number(data.brandId),   // Chuyển đổi sang số
                 status: product.status || 'ACTIVE'
             });
@@ -236,9 +248,11 @@ const EditProductPage = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase tracking-wide">Danh mục</label>
-                                <select {...register('categoryId', { required: true })} className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl outline-none">
-                                    {categories?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
+                                <CategoryPicker
+                                    categories={categories || []}
+                                    value={selectedCategoryIds}
+                                    onChange={(nextValue) => setValue('categoryIds', nextValue, { shouldValidate: true })}
+                                />
                             </div>
                             <div>
                                 <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase tracking-wide">Thương hiệu</label>

@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios';
-import type { ShippingAddressRequest, ShippingAddressResponse, UserResponse, UserUpdateRequest } from '../types/user.types';
+import type { ChangePasswordRequest, ShippingAddressRequest, ShippingAddressResponse, UserResponse, UserUpdateRequest } from '../types/user.types';
 
 // User Profile APIs
 export const getUserProfile = async (id: number): Promise<UserResponse> => {
@@ -9,6 +9,11 @@ export const getUserProfile = async (id: number): Promise<UserResponse> => {
 
 export const updateUserProfile = async (id: number, data: UserUpdateRequest): Promise<UserResponse> => {
     const response = await api.put(`/api/users/${id}`, data);
+    return response.data;
+};
+
+export const changePassword = async (data: ChangePasswordRequest): Promise<string> => {
+    const response = await api.put('/api/users/change-password', data);
     return response.data;
 };
 

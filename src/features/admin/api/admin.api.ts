@@ -23,8 +23,7 @@ export const adminApi = {
     },
 
     updateUserStatus: async (user: AdminUser, status: string): Promise<AdminUser> => {
-        const response = await api.put(`/api/users/${user.id}`, {
-            ...user,
+        const response = await api.patch(`/api/users/${user.id}/status`, {
             status,
         });
         return response.data;
@@ -40,8 +39,7 @@ export const adminApi = {
     },
 
     updateShopStatus: async (shop: AdminShop, status: string): Promise<AdminShop> => {
-        const response = await api.put(`/api/shops/${shop.id}`, {
-            ...shop,
+        const response = await api.patch(`/api/shops/${shop.id}/status`, {
             status,
         });
         return response.data;

@@ -3,7 +3,7 @@ import { Search, Trash2, UsersRound } from 'lucide-react';
 import { AdminEmptyState, AdminPageHeader, AdminStatusBadge, AdminTableShell } from '../components/admin-ui';
 import { useAdminUsers, useDeleteAdminUser, useUpdateAdminUserStatus } from '../hooks/use-admin';
 
-const USER_STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'LOCKED', 'BANNED'];
+const USER_STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'BANNED', 'PENDING'];
 
 const AdminUsersPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -60,7 +60,7 @@ const AdminUsersPage = () => {
                                     <td className="px-5 py-4"><AdminStatusBadge tone="blue">{user.roleName || 'USER'}</AdminStatusBadge></td>
                                     <td className="px-5 py-4">
                                         <div className="flex flex-col gap-2">
-                                            <AdminStatusBadge tone={user.status === 'ACTIVE' ? 'green' : user.status === 'BANNED' || user.status === 'LOCKED' ? 'red' : 'slate'}>{user.status || 'UNKNOWN'}</AdminStatusBadge>
+                                            <AdminStatusBadge tone={user.status === 'ACTIVE' ? 'green' : user.status === 'BANNED' ? 'red' : user.status === 'PENDING' ? 'amber' : 'slate'}>{user.status || 'UNKNOWN'}</AdminStatusBadge>
                                             <select
                                                 value={user.status || 'ACTIVE'}
                                                 onChange={(event) => updateUserStatus.mutate({ user, status: event.target.value })}

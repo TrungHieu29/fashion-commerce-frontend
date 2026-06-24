@@ -5,6 +5,13 @@ import { useAuthStore } from '@/stores/auth.store';
 import * as shopApi from '../api/shop.api';
 import type { ShopRequest, ShopUpdateRequest } from '../types/shop.types';
 
+type CreateShopVariables =
+    | ShopRequest
+    | {
+          data: ShopRequest;
+          logoFile?: File | null;
+      };
+
 export const useShops = () => {
     return useQuery({
         queryKey: ['shops'],
@@ -21,7 +28,7 @@ export const useShopById = (shopId: number) => {
 };
 
 export const useMyShop = () => {
-    const user = useAuthStore(state => state.user);
+    const user = useAuthStore((state) => state.user);
 
     return useQuery({
         queryKey: ['my-shop', user?.id],
@@ -33,55 +40,61 @@ export const useMyShop = () => {
 
 export const useCreateShop = () => {
     const queryClient = useQueryClient();
-    const user = useAuthStore(state => state.user);
+    const user = useAuthStore((state) => state.user);
 
     return useMutation({
-        mutationFn: (data: ShopRequest) => shopApi.createShop(data),
+        mutationFn: (variables: CreateShopVariables) => {
+            if ('data' in variables) {
+                return shopApi.createShop(variables.data, variables.logoFile);
+            }
+
+            return shopApi.createShop(variables);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-shop', user?.id] });
             queryClient.invalidateQueries({ queryKey: ['shops'] });
-            toast.success('Tao shop thanh cong');
+            toast.success('Đã gửi đăng ký shop. Vui lòng chờ quản trị viên duyệt.');
         },
         onError: (error: any) => {
             const serverMessage = error.response?.data?.message;
-            toast.error(serverMessage || 'Loi tao shop. Vui long thu lai.');
-        }
+            toast.error(serverMessage || 'Lỗi tạo shop. Vui lòng thử lại.');
+        },
     });
 };
 
 export const useUpdateShop = () => {
     const queryClient = useQueryClient();
-    const user = useAuthStore(state => state.user);
+    const user = useAuthStore((state) => state.user);
 
     return useMutation({
         mutationFn: ({ id, data }: { id: number; data: ShopUpdateRequest }) => shopApi.updateShop(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-shop', user?.id] });
             queryClient.invalidateQueries({ queryKey: ['shops'] });
-            toast.success('Cap nhat thong tin shop thanh cong');
+            toast.success('Cập nhật thông tin shop thành công.');
         },
         onError: (error: any) => {
             const serverMessage = error.response?.data?.message;
-            toast.error(serverMessage || 'Loi cap nhat shop. Vui long thu lai.');
-        }
+            toast.error(serverMessage || 'Lỗi cập nhật shop. Vui lòng thử lại.');
+        },
     });
 };
 
 export const useDeleteShop = () => {
     const queryClient = useQueryClient();
-    const user = useAuthStore(state => state.user);
+    const user = useAuthStore((state) => state.user);
 
     return useMutation({
         mutationFn: (id: number) => shopApi.deleteShop(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-shop', user?.id] });
             queryClient.invalidateQueries({ queryKey: ['shops'] });
-            toast.success('Da xoa shop');
+            toast.success('Đã xóa shop.');
         },
         onError: (error: any) => {
             const serverMessage = error.response?.data?.message;
-            toast.error(serverMessage || 'Loi xoa shop. Vui long thu lai.');
-        }
+            toast.error(serverMessage || 'Lỗi xóa shop. Vui lòng thử lại.');
+        },
     });
 };
 
@@ -95,7 +108,7 @@ export const useShopDashboard = (shopId?: number) => {
         enabled: !!shopId,
         retry: false,
         refetchOnWindowFocus: false,
-        refetchInterval: (query) => query.state.error ? false : 30000,
+        refetchInterval: (query) => (query.state.error ? false : 30000),
         staleTime: 15000,
     });
 };
@@ -105,7 +118,7 @@ export const useShopAnalytics = (shopId?: number | string, period: 'today' | '7d
         queryKey: ['shop-analytics', shopId, period],
         queryFn: async () => {
             const response = await api.get(`/api/dashboard/shop/${shopId}/analytics`, {
-                params: { period }
+                params: { period },
             });
             return response.data;
         },
@@ -113,6 +126,6 @@ export const useShopAnalytics = (shopId?: number | string, period: 'today' | '7d
         retry: false,
         refetchOnWindowFocus: false,
         staleTime: 5000,
-        refetchInterval: (query) => query.state.error ? false : 10000,
+        refetchInterval: (query) => (query.state.error ? false : 10000),
     });
 };

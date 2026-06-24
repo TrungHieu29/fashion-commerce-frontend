@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
 import type { ProductResponse } from '../types/product.types';
+import { getProductCategoryLabel } from '../types/product.types';
 
 interface ProductCardProps {
     product: ProductResponse;
@@ -14,6 +15,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     const finalPrice = product.finalPrice ?? 0;
     const discountAmount = product.discountAmount ?? 0;
     const rating = product.rating ?? 0;
+    const categoryLabel = getProductCategoryLabel(product);
 
     const { data: productImages } = useQuery<ProductImageResponse[]>({
         queryKey: ['product-images', product.id],
@@ -33,7 +35,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         : 0;
 
     return (
-        <div className="relative flex min-h-[390px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+        <div className="relative flex min-h-[340px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             {discountPercent > 0 && (
                 <span className="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white shadow-sm">
                     -{discountPercent}%
@@ -52,7 +54,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
             <div className="flex flex-1 flex-col p-4">
                 <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {product.categoryName && <span className="truncate">{product.categoryName}</span>}
+                    {categoryLabel && <span className="truncate">{categoryLabel}</span>}
                     {product.brandName && <span className="truncate rounded-full bg-slate-100 px-2 py-0.5 text-slate-500">{product.brandName}</span>}
                 </div>
 
@@ -62,9 +64,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     </h3>
                 </Link>
 
-                <p className="mt-2 line-clamp-2 flex-1 text-sm leading-5 text-slate-500">{product.productDetail}</p>
-
-                <div className="mt-4 flex items-end justify-between gap-3">
+                <div className="mt-auto flex items-end justify-between gap-3 pt-4">
                     <div className="min-w-0">
                         {discountAmount > 0 && originalPrice > finalPrice && (
                             <p className="text-xs font-semibold text-slate-400 line-through">

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/lib/axios';
 import type { ProductResponse } from '@/features/product/types/product.types';
+import { getProductCategoryLabel, productMatchesCategory } from '@/features/product/types/product.types';
 
 const ShopProductsPage = () => {
     const { data: shop } = useMyShop();
@@ -51,7 +52,7 @@ const ShopProductsPage = () => {
         return content.filter((p: any) => {
             const matchSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase());
             const matchRating = ratingFilter === 'all' ? true : Math.floor(p.rating || 0) >= parseInt(ratingFilter);
-            const matchCategory = categoryFilter === 'all' ? true : p.categoryId?.toString() === categoryFilter;
+            const matchCategory = productMatchesCategory(p, categoryFilter);
             const matchBrand = brandFilter === 'all' ? true : p.brandId?.toString() === brandFilter;
 
             return matchSearch && matchRating && matchCategory && matchBrand;
@@ -175,7 +176,7 @@ const ShopProductsPage = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-[#6B7280] text-[13px]">{product.categoryName}</td>
+                                    <td className="px-6 py-4 text-[#6B7280] text-[13px]">{getProductCategoryLabel(product) || 'Chưa phân loại'}</td>
                                     <td className="px-6 py-4">
                                         <VariantCell productId={product.id} />
                                     </td>

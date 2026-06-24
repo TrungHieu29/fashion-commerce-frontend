@@ -9,6 +9,7 @@ import type { DiscountResponse } from '../types/discount.types';
 import { api } from '@/lib/axios';
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getProductCategoryLabel } from '@/features/product/types/product.types';
 
 const DiscountManagementPage = () => {
     const { data: shop, isLoading: isLoadingShop } = useMyShop();
@@ -252,7 +253,7 @@ const ProductSelectorModal = ({ shopId, selectedIds, onSelect, onClose }: { shop
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-bold text-gray-800 line-clamp-1">{p.productName}</p>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase">{p.categoryName} • {p.brandName}</p>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase">{getProductCategoryLabel(p) || 'Chưa phân loại'} • {p.brandName}</p>
                                 </div>
                                 <p className="text-xs font-black text-gray-900">{p.finalPrice.toLocaleString()}đ</p>
                             </div>

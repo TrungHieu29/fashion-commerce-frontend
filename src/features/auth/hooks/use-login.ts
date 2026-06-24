@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
-import { loginApi } from '../api/auth.api';
-
 import { useAuthStore } from '@/stores/auth.store';
+import { getUserStatusMessage } from '@/lib/status-messages';
+import { loginApi } from '../api/auth.api';
 
 export const useLogin = () => {
     const navigate = useNavigate();
@@ -13,8 +13,8 @@ export const useLogin = () => {
         mutationFn: async (payload: Parameters<typeof loginApi>[0]) => {
             const data = await loginApi(payload);
 
-            if (data.user.status === 'PENDING') {
-                throw new Error('Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email để nhập mã xác thực.');
+            if (data.user.status && data.user.status !== 'ACTIVE') {
+                throw new Error(getUserStatusMessage(data.user.status));
             }
 
             return data;
@@ -27,7 +27,7 @@ export const useLogin = () => {
                     username: data.user.username,
                     email: data.user.email,
                     status: data.user.status,
-                    roles: [data.user.roleName], // Chuyển roleName thành mảng để khớp với Store
+                    roles: [data.user.roleName],
                 },
                 data.accessToken
             );

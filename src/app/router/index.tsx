@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'; // Thêm Navig
 import LoginPage from '@/features/auth/pages/login-page';
 import RegisterPage from '@/features/auth/pages/register-page';
 import VerifyAccountPage from '@/features/auth/pages/verify-account-page';
+import ForgotPasswordPage from '@/features/auth/pages/forgot-password-page';
 
 import ProfilePage from '@/features/user/pages/profile-page';
 import MyShopPage from '@/features/shop/pages/my-shop-page';
@@ -33,6 +34,7 @@ import AuthLayout from '@/layouts/auth-layout';
 
 import { ProtectedRoute } from '@/routes/protected-route';
 import { AdminRoute } from '@/routes/admin-route';
+import { SellerRoute } from '@/routes/seller-route';
 import CartPage from '@/features/cart/pages/cart-page';
 import ShopShippingPage from '@/features/shop/pages/shop-shipping-page';
 import SellerChatPage from '@/features/chat/pages/seller-chat-page';
@@ -60,13 +62,17 @@ export const router = createBrowserRouter([
                 path: '/verify-account',
                 element: <VerifyAccountPage />,
             },
+            {
+                path: '/forgot-password',
+                element: <ForgotPasswordPage />,
+            },
         ],
     },
     {
         element: (
-            <ProtectedRoute>
+            <SellerRoute>
                 <SellerLayout />
-            </ProtectedRoute>
+            </SellerRoute>
         ),
         children: [
             // 1. Đưa thằng chuyển hướng lên đầu tiên làm nhiệm vụ "đón lỏng" khi vừa vào /my-shop

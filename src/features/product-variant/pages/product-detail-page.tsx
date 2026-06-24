@@ -18,6 +18,7 @@ import { useAddToCart } from '@/features/cart/hooks/use-cart';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import type { ProductImageResponse } from '../types/variant.types';
+import { getProductCategoryLabel } from '@/features/product/types/product.types';
 
 // 2. Import useChatStore để điều khiển đóng/mở Chat Box
 import { useChatStore } from '@/stores/use.chat.store';
@@ -154,6 +155,7 @@ const ProductDetailPage = () => {
     // VARIANT LOGIC
     // =========================
     const hasVariants = product.variants && product.variants.length > 0;
+    const categoryLabel = getProductCategoryLabel(product);
     const allSizes = Array.from(new Set(product.variants.map((v) => v.size)));
     const allColors = Array.from(new Set(product.variants.map((v) => v.color)));
 
@@ -226,15 +228,24 @@ const ProductDetailPage = () => {
 
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
                 {/* IMAGE */}
-                <div className="aspect-square rounded-3xl bg-[#F9FAFB] border border-[#E5E7EB] overflow-hidden group">
-                    {mainImage ? (
-                        <img src={mainImage} alt={product.productName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-[#9CA3AF] space-y-2">
-                            <Package size={48} strokeWidth={1} />
-                            <span className="text-xs font-bold uppercase tracking-widest">No Image Available</span>
-                        </div>
-                    )}
+                <div className="space-y-5">
+                    <div className="aspect-square rounded-3xl bg-[#F9FAFB] border border-[#E5E7EB] overflow-hidden group">
+                        {mainImage ? (
+                            <img src={mainImage} alt={product.productName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-[#9CA3AF] space-y-2">
+                                <Package size={48} strokeWidth={1} />
+                                <span className="text-xs font-bold uppercase tracking-widest">Chưa có ảnh</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h2 className="text-base font-black uppercase tracking-wide text-slate-950">Mô tả sản phẩm</h2>
+                        <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">
+                            {product.productDetail || 'Sản phẩm chưa có mô tả chi tiết.'}
+                        </p>
+                    </section>
                 </div>
 
                 {/* INFO */}
@@ -245,10 +256,10 @@ const ProductDetailPage = () => {
                                 {product.brandName}
                             </span>
                         )}
-                        {product.brandName && product.categoryName && <span className="text-[11px] text-[#9CA3AF]">/</span>}
-                        {product.categoryName && (
+                        {product.brandName && categoryLabel && <span className="text-[11px] text-[#9CA3AF]">/</span>}
+                        {categoryLabel && (
                             <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-tight">
-                                {product.categoryName}
+                                {categoryLabel}
                             </span>
                         )}
                     </div>
@@ -274,11 +285,6 @@ const ProductDetailPage = () => {
                             {product.rating}
                         </div>
                     </div>
-
-                    {/* DETAIL */}
-                    <p className="mt-6 border-l-4 border-gray-200 pl-4 italic leading-relaxed text-gray-600">
-                        "{product.productDetail}"
-                    </p>
 
                     {/* VARIANT */}
                     <div className="mt-8 space-y-6">

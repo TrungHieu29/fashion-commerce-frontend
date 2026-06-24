@@ -5,6 +5,7 @@ import { ChevronLeft, Mail, MapPin, Phone, Search, Store, UserRound } from 'luci
 import { api } from '@/lib/axios';
 import { ProductCard } from '@/features/product/components/product-card';
 import type { ProductResponse } from '@/features/product/types/product.types';
+import { getProductCategoryLabel } from '@/features/product/types/product.types';
 import { useShopById } from '../hooks/use-shop';
 
 const ShopDetailPage = () => {
@@ -31,7 +32,7 @@ const ShopDetailPage = () => {
 
         return products
             .filter((product: ProductResponse) => keyword
-                ? [product.productName, product.productDetail, product.brandName, product.categoryName]
+                ? [product.productName, product.productDetail, product.brandName, getProductCategoryLabel(product)]
                     .filter(Boolean)
                     .some(value => String(value).toLowerCase().includes(keyword))
                 : true

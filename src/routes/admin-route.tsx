@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
+import { getUserStatusMessage } from '@/lib/status-messages';
 
 export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, user } = useAuthStore();
@@ -8,6 +9,10 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
+    }
+
+    if (user?.status && user.status !== 'ACTIVE') {
+        return <Navigate to="/login" replace state={{ authMessage: getUserStatusMessage(user.status) }} />;
     }
 
     if (!isAdmin) {

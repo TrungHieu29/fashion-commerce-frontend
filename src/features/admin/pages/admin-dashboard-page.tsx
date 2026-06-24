@@ -2,6 +2,7 @@ import { Building2, ClipboardList, DollarSign, PackageSearch, Star, Tags, UsersR
 import { Link } from 'react-router-dom';
 import { AdminPageHeader, AdminStatCard, AdminStatusBadge, AdminTableShell } from '../components/admin-ui';
 import { useAdminOverview } from '../hooks/use-admin';
+import { getProductCategoryLabel } from '@/features/product/types/product.types';
 
 const formatCurrency = (value: number) => `${Math.round(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -49,7 +50,7 @@ const AdminDashboardPage = () => {
                         {topProducts.map((product) => (
                             <div key={product.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                                 <p className="line-clamp-1 text-sm font-black text-slate-950">{product.productName}</p>
-                                <p className="mt-1 text-xs text-slate-500">{product.shopName || 'Chưa có shop'} · {product.categoryName || 'Chưa phân loại'}</p>
+                                <p className="mt-1 text-xs text-slate-500">{product.shopName || 'Chưa có shop'} · {getProductCategoryLabel(product) || 'Chưa phân loại'}</p>
                                 <div className="mt-2 flex items-center justify-between">
                                     <span className="text-sm font-black text-blue-600">{formatCurrency(product.finalPrice || 0)}</span>
                                     <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600"><Star size={13} /> {product.rating || 0}</span>

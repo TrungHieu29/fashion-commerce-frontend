@@ -22,6 +22,7 @@ import image3 from '@/assets/images/image3.png';
 import { useProducts } from '../hooks/use-products';
 import { ProductCard } from '../components/product-card';
 import type { ProductResponse } from '../types/product.types';
+import { getProductCategoryLabel, productMatchesCategory } from '../types/product.types';
 
 type Category = { id: number; name: string };
 type Brand = { id: number; name: string };
@@ -110,13 +111,13 @@ const ProductsPage = () => {
         const filtered = allProducts.filter((product: ProductResponse) => {
             const price = product.finalPrice ?? 0;
             const matchesSearch = normalizedSearch
-                ? [product.productName, product.productDetail, product.shopName, product.brandName, product.categoryName]
+                ? [product.productName, product.productDetail, product.shopName, product.brandName, getProductCategoryLabel(product)]
                     .filter(Boolean)
                     .some(value => String(value).toLowerCase().includes(normalizedSearch))
                 : true;
 
             return matchesSearch
-                && (selectedCategory === 'all' || String(product.categoryId) === selectedCategory)
+                && productMatchesCategory(product, selectedCategory)
                 && (selectedBrand === 'all' || String(product.brandId) === selectedBrand)
                 && price >= priceRange.min
                 && price <= priceRange.max;
@@ -126,16 +127,18 @@ const ProductsPage = () => {
     }, [allProducts, searchTerm, selectedCategory, selectedBrand, selectedPriceRange, sortBy]);
 
     const flashSaleProducts = useMemo(() => {
-        return [...filteredProducts]
-            .filter((product: ProductResponse) => (product.discountAmount || 0) > 0)
-            .sort((a: ProductResponse, b: ProductResponse) => (b.discountAmount || 0) - (a.discountAmount || 0));
-    }, [filteredProducts]);
+        return sortProducts(
+            filteredProducts.filter((product: ProductResponse) => (product.discountAmount || 0) > 0),
+            sortBy
+        );
+    }, [filteredProducts, sortBy]);
 
     const hotProducts = useMemo(() => {
-        return [...filteredProducts]
-            .filter((product: ProductResponse) => (product.rating || 0) >= 4)
-            .sort((a: ProductResponse, b: ProductResponse) => (b.rating || 0) - (a.rating || 0));
-    }, [filteredProducts]);
+        return sortProducts(
+            filteredProducts.filter((product: ProductResponse) => (product.rating || 0) >= 4),
+            sortBy
+        );
+    }, [filteredProducts, sortBy]);
 
     const activeFilterCount = [selectedCategory, selectedBrand, selectedPriceRange].filter(value => value !== 'all').length + (searchTerm.trim() ? 1 : 0);
 

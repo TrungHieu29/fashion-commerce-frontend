@@ -24,8 +24,22 @@ export const getShopByOwnerId = async (ownerId: number): Promise<ShopResponse | 
     }
 };
 
-export const createShop = async (data: ShopRequest): Promise<ShopResponse> => {
-    const response = await api.post('/api/shops', data);
+export const createShop = async (data: ShopRequest, logoFile?: File | null): Promise<ShopResponse> => {
+    const formData = new FormData();
+    formData.append(
+        'shop',
+        new Blob([JSON.stringify(data)], {
+            type: 'application/json',
+        })
+    );
+
+    if (logoFile) {
+        formData.append('logo', logoFile);
+    }
+
+    const response = await api.post('/api/shops', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
 };
 

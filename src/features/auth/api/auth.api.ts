@@ -5,6 +5,9 @@ import type {
     RegisterRequest,
     AuthResponse,
     VerifyOtpRequest,
+    ResendOtpRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
 } from '../types/auth.types';
 
 export const loginApi = async (
@@ -37,5 +40,25 @@ export const verifyOtpApi = async (data: VerifyOtpRequest): Promise<string> => {
         },
     });
 
+    return response.data;
+};
+
+export const resendOtpApi = async (data: ResendOtpRequest): Promise<string> => {
+    const response = await api.post('/api/auth/resend-otp', data);
+    return response.data;
+};
+
+export const forgotPasswordApi = async (data: ForgotPasswordRequest): Promise<string> => {
+    const response = await api.post('/api/auth/forgot-password', data);
+    return response.data;
+};
+
+export const resendResetOtpApi = async (data: ForgotPasswordRequest): Promise<string> => {
+    const response = await api.post('/api/auth/resend-reset-otp', data);
+    return response.data;
+};
+
+export const resetPasswordApi = async (data: ResetPasswordRequest): Promise<string> => {
+    const response = await api.post('/api/auth/reset-password', data);
     return response.data;
 };

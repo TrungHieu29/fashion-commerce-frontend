@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Search, Star, Trash2 } from 'lucide-react';
 import { AdminEmptyState, AdminPageHeader, AdminStatusBadge, AdminTableShell } from '../components/admin-ui';
 import { useAdminProducts, useDeleteAdminProduct } from '../hooks/use-admin';
+import { getProductCategoryLabel } from '@/features/product/types/product.types';
 
 const formatCurrency = (value?: number) => `${Math.round(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -15,7 +16,7 @@ const AdminProductsPage = () => {
         const keyword = searchTerm.trim().toLowerCase();
         if (!keyword) return products;
         return products.filter((product) =>
-            [product.productName, product.shopName, product.categoryName, product.brandName, product.status]
+            [product.productName, product.shopName, getProductCategoryLabel(product), product.brandName, product.status]
                 .filter(Boolean)
                 .some((value) => String(value).toLowerCase().includes(keyword))
         );
@@ -52,7 +53,7 @@ const AdminProductsPage = () => {
                                     </td>
                                     <td className="px-5 py-4 text-slate-600">{product.shopName || 'Chưa rõ'}</td>
                                     <td className="px-5 py-4 text-slate-600">
-                                        <p>{product.categoryName || 'Chưa phân loại'}</p>
+                                        <p>{getProductCategoryLabel(product) || 'Chưa phân loại'}</p>
                                         <p className="text-xs text-slate-400">{product.brandName || 'Chưa có thương hiệu'}</p>
                                     </td>
                                     <td className="px-5 py-4">

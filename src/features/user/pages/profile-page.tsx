@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useUserProfile, useAddresses, useUpdateProfile, useSetDefaultAddress, useDeleteAddress, useAddAddress } from '../hooks/use-user';
-import { User, MapPin, Phone, Mail, Calendar, Plus, Trash2, X, AlertCircle, Package, History } from 'lucide-react';
+import { useUserProfile, useAddresses, useUpdateProfile, useSetDefaultAddress, useDeleteAddress, useAddAddress, useChangePassword } from '../hooks/use-user';
+import { User, MapPin, Phone, Mail, Calendar, Plus, Trash2, X, AlertCircle, Package, History, ShieldCheck, KeyRound } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, addressSchema } from '../schemas/profile.schema';
 import ProfileOrdersPage from '@/features/order/pages/profile-orders-page';
+import { changePasswordSchema, type ChangePasswordSchemaType } from '@/features/auth/schemas/password.schema';
 
 const GENDER_LABELS: Record<string, string> = {
     MALE: 'Nam',
@@ -22,7 +23,7 @@ const ProfilePage = () => {
     const deleteAddr = useDeleteAddress();
 
     const [searchParams, setSearchParams] = useSearchParams();
-    const activeTab = (searchParams.get('tab') as 'info' | 'address' | 'orders' | 'history') || 'info';
+    const activeTab = (searchParams.get('tab') as 'info' | 'address' | 'orders' | 'history' | 'security') || 'info';
 
     const setActiveTab = (tab: string) => {
         setSearchParams({ tab });
@@ -30,6 +31,7 @@ const ProfilePage = () => {
 
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
+    const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
     if (profileLoading || addressLoading) return <div className="p-20 text-center">Đang tải...</div>;
 
@@ -69,6 +71,12 @@ const ProfilePage = () => {
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
                         <History size={18} /> Lịch sử đơn hàng
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('security')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'security' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        <ShieldCheck size={18} /> Bảo mật
                     </button>
                 </div>
 
@@ -133,8 +141,29 @@ const ProfilePage = () => {
                         </div>
                     ) : activeTab === 'orders' ? (
                         <ProfileOrdersPage mode="ACTIVE" isNested />
-                    ) : (
+                    ) : activeTab === 'history' ? (
                         <ProfileOrdersPage mode="HISTORY" isNested />
+                    ) : (
+                        <div>
+                            <h3 className="text-xl font-bold mb-6">Bảo mật tài khoản</h3>
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                                <div className="flex items-start gap-4">
+                                    <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
+                                        <KeyRound size={24} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-black text-slate-950">Đổi mật khẩu</h4>
+                                        <p className="mt-1 text-sm leading-6 text-slate-500">Nhập mật khẩu hiện tại và mật khẩu mới để cập nhật bảo mật.</p>
+                                        <button
+                                            onClick={() => setIsChangePasswordOpen(true)}
+                                            className="mt-4 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-600"
+                                        >
+                                            Đổi mật khẩu
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
@@ -150,6 +179,9 @@ const ProfilePage = () => {
                 <AddAddressModal
                     onClose={() => setIsAddAddressOpen(false)}
                 />
+            )}
+            {isChangePasswordOpen && (
+                <ChangePasswordModal onClose={() => setIsChangePasswordOpen(false)} />
             )}
         </div>
     );
@@ -366,6 +398,72 @@ const AddAddressModal = ({ onClose }: { onClose: () => void }) => {
         </div>
     );
 };
+
+const ChangePasswordModal = ({ onClose }: { onClose: () => void }) => {
+    const changePassword = useChangePassword();
+    const { register, handleSubmit, setError, formState: { errors } } = useForm<ChangePasswordSchemaType>({
+        resolver: zodResolver(changePasswordSchema),
+        defaultValues: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+        },
+    });
+
+    const onSubmit = (data: ChangePasswordSchemaType) => {
+        changePassword.mutate(data, {
+            onSuccess: () => onClose(),
+            onError: (error: any) => {
+                const message = String(error.response?.data?.message || error.response?.data || error.message || '').toLowerCase();
+                if (message.includes('mật khẩu hiện tại')) {
+                    setError('currentPassword', { type: 'server', message: 'Mật khẩu hiện tại không đúng' });
+                } else if (message.includes('xác nhận mật khẩu')) {
+                    setError('confirmPassword', { type: 'server', message: 'Xác nhận mật khẩu không khớp' });
+                } else if (message.includes('validation')) {
+                    setError('newPassword', { type: 'server', message: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+                }
+            },
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                <div className="flex justify-between items-center p-6 border-b">
+                    <h3 className="font-bold text-xl">Đổi mật khẩu</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <X size={20} />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+                    <PasswordField label="Mật khẩu hiện tại" error={errors.currentPassword?.message} inputProps={register('currentPassword')} />
+                    <PasswordField label="Mật khẩu mới" error={errors.newPassword?.message} inputProps={register('newPassword')} />
+                    <PasswordField label="Xác nhận mật khẩu" error={errors.confirmPassword?.message} inputProps={register('confirmPassword')} />
+                    <div className="pt-2 flex gap-3">
+                        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50">
+                            Hủy
+                        </button>
+                        <button type="submit" disabled={changePassword.isPending} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50">
+                            {changePassword.isPending ? 'Đang đổi...' : 'Đổi mật khẩu'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+const PasswordField = ({ label, error, inputProps }: { label: string; error?: string; inputProps: any }) => (
+    <div>
+        <label className="block text-sm font-bold text-gray-700 mb-1">{label}</label>
+        <input
+            type="password"
+            className={`w-full px-4 py-2 rounded-xl border ${error ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-blue-500 outline-none`}
+            {...inputProps}
+        />
+        {error && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> {error}</p>}
+    </div>
+);
 
 const InfoField = ({ label, value, icon }: { label: string, value?: string, icon: React.ReactNode }) => (
     <div className="space-y-1">

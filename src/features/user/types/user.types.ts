@@ -24,6 +24,12 @@ export interface UserUpdateRequest {
     avatar?: string;
 }
 
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
 export interface ShippingAddressResponse {
     id: number;
     userId: number;
