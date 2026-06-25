@@ -138,14 +138,14 @@ const VerifyAccountPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F7FA] px-4 py-8">
-            <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-5xl items-center justify-center overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.10)]">
+        <div className="min-h-screen bg-[#F8F6F1] px-4 py-8">
+            <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-5xl items-center justify-center overflow-hidden border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(24,24,27,0.10)]">
                 <div className="w-full max-w-[520px] px-5 py-10 sm:px-10">
                     <div className="mb-8 text-center">
-                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#EFF6FF] text-[#2563EB]">
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center bg-zinc-950 text-white">
                             <MailCheck size={32} />
                         </div>
-                        <p className="text-sm font-bold uppercase text-[#2563EB]">Xác thực email</p>
+                        <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#A68545]">Xác thực email</p>
                         <h1 className="mt-2 text-3xl font-black tracking-tight text-[#111827]">Nhập mã xác nhận</h1>
                         <p className="mt-3 text-sm leading-6 text-[#64748B]">
                             Mã gồm 6 số đã được gửi tới Gmail đăng ký của bạn.
@@ -184,7 +184,7 @@ const VerifyAccountPage = () => {
                                         inputMode="numeric"
                                         maxLength={1}
                                         aria-label={`Số thứ ${index + 1}`}
-                                        className={`h-14 w-11 border-0 border-b-2 bg-transparent text-center text-3xl font-black text-[#111827] outline-none transition-all sm:h-16 sm:w-[52px] ${otpError ? 'border-red-400' : 'border-[#CBD5E1] focus:border-[#2563EB]'}`}
+                                        className={`h-14 w-11 border-0 border-b-2 bg-transparent text-center text-3xl font-black text-[#111827] outline-none transition-all sm:h-16 sm:w-[52px] ${otpError ? 'border-red-400' : 'border-[#CBD5E1] focus:border-[#A68545]'}`}
                                     />
                                 ))}
                             </div>
@@ -214,7 +214,7 @@ const VerifyAccountPage = () => {
 
                     <p className="mt-8 text-center text-sm text-[#64748B]">
                         Đã kích hoạt?{' '}
-                        <Link to="/login" className="font-bold text-[#111827] hover:text-[#2563EB]">
+                        <Link to="/login" className="font-bold text-[#111827] hover:text-[#A68545]">
                             Đăng nhập
                         </Link>
                     </p>

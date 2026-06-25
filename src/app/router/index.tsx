@@ -19,6 +19,7 @@ import ShopDashboardPage from '@/features/shop/pages/shop-dashboard-page';
 import ShopAnalyticsPage from '@/features/shop/pages/shop-analytics-page';
 
 import ProductsPage from '@/features/product/pages/products-page.tsx';
+import ProductCollectionPage from '@/features/product/pages/product-collection-page';
 
 import ProductDetailPage from '@/features/product-variant/pages/product-detail-page';
 import CheckoutPage from '@/features/order/pages/checkout-page';
@@ -36,6 +37,7 @@ import { ProtectedRoute } from '@/routes/protected-route';
 import { AdminRoute } from '@/routes/admin-route';
 import { SellerRoute } from '@/routes/seller-route';
 import CartPage from '@/features/cart/pages/cart-page';
+import WishlistPage from '@/features/wishlist/pages/wishlist-page';
 import ShopShippingPage from '@/features/shop/pages/shop-shipping-page';
 import SellerChatPage from '@/features/chat/pages/seller-chat-page';
 import AdminDashboardPage from '@/features/admin/pages/admin-dashboard-page';
@@ -184,6 +186,14 @@ export const router = createBrowserRouter([
                 ),
             },
             {
+                path: '/wishlist',
+                element: (
+                    <ProtectedRoute>
+                        <WishlistPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
                 path: '/checkout',
                 element: (
                     <ProtectedRoute>
@@ -204,7 +214,19 @@ export const router = createBrowserRouter([
                 element: <ProductDetailPage />,
             },
             {
+                path: '/products/:type',
+                element: <ProductCollectionPage />,
+            },
+            {
                 path: '/profile',
+                element: (
+                    <ProtectedRoute>
+                        <ProfilePage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/account/orders',
                 element: (
                     <ProtectedRoute>
                         <ProfilePage />

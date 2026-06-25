@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, ShoppingBag, ShoppingCart, UserRound, X } from 'lucide-react';
+import { Heart, Menu, ShoppingBag, ShoppingCart, UserRound, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyShop } from '@/features/shop/hooks/use-shop';
 import { useCart } from '@/features/cart/hooks/use-cart';
+import { NotificationBell } from '@/features/notification/components/notification-bell';
 
 export const Navbar = () => {
     const logout = useAuthStore((state) => state.logout);
@@ -12,6 +13,7 @@ export const Navbar = () => {
     const isAdmin = user?.roles?.some((role) => role === 'ADMIN' || role === 'ROLE_ADMIN') || false;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [cartPulse, setCartPulse] = useState(false);
 
     const { data: cart } = useCart();
     const itemCount = cart?.cartItems?.length || 0;
@@ -23,21 +25,28 @@ export const Navbar = () => {
         setIsMenuOpen(false);
     };
 
+    useEffect(() => {
+        const handleCartUpdated = () => {
+            setCartPulse(true);
+            window.setTimeout(() => setCartPulse(false), 900);
+        };
+
+        window.addEventListener('cart-updated', handleCartUpdated);
+        return () => window.removeEventListener('cart-updated', handleCartUpdated);
+    }, []);
+
     return (
         <>
             <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/88 backdrop-blur-xl">
                 <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
                     <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-[0.18em] text-zinc-950">
                         <ShoppingBag size={21} strokeWidth={1.7} />
-                        MAISON
+                        Voguish
                     </Link>
 
                     <div className="hidden items-center gap-9 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-500 lg:flex">
                         <Link to="/" className="transition-colors hover:text-zinc-950">Home</Link>
-                        <Link to="/" className="transition-colors hover:text-zinc-950">Shop</Link>
-                        <Link to="/" className="transition-colors hover:text-zinc-950">Collections</Link>
-                        <Link to="/" className="transition-colors hover:text-zinc-950">Sale</Link>
-                        <Link to="/shops" className="transition-colors hover:text-zinc-950">Lookbook</Link>
+                        <Link to="/shops" className="transition-colors hover:text-zinc-950">Shop</Link>
                         {isAuthenticated && isAdmin && (
                             <Link to="/admin" className="text-[#A68545] transition-colors hover:text-zinc-950">Admin</Link>
                         )}
@@ -56,7 +65,15 @@ export const Navbar = () => {
                             </div>
                         )}
 
-                        <Link to="/cart" className="relative flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-zinc-950" aria-label="Giỏ hàng">
+                        {isAuthenticated && <NotificationBell />}
+
+                        {isAuthenticated && (
+                            <Link to="/wishlist" className="flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-red-500" aria-label="Sản phẩm yêu thích">
+                                <Heart size={21} strokeWidth={1.6} />
+                            </Link>
+                        )}
+
+                        <Link to="/cart" className={`relative flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-zinc-950 ${cartPulse ? 'animate-bounce text-[#A68545]' : ''}`} aria-label="Giỏ hàng">
                             <ShoppingCart size={21} strokeWidth={1.6} />
                             {isAuthenticated && itemCount > 0 && (
                                 <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-bold text-white">
@@ -98,7 +115,7 @@ export const Navbar = () => {
                         <div className="flex items-center justify-between">
                             <Link to="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 text-lg font-semibold tracking-[0.18em] text-zinc-950">
                                 <ShoppingBag size={21} />
-                                MAISON
+                                Voguish
                             </Link>
                             <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-zinc-100" aria-label="Đóng menu">
                                 <X size={20} />
@@ -107,10 +124,8 @@ export const Navbar = () => {
 
                         <div className="mt-10 flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-600">
                             <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Home</MobileLink>
-                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Shop</MobileLink>
-                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Collections</MobileLink>
-                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Sale</MobileLink>
-                            <MobileLink to="/shops" onClick={() => setIsMenuOpen(false)}>Lookbook</MobileLink>
+                            <MobileLink to="/shops" onClick={() => setIsMenuOpen(false)}>Shop</MobileLink>
+                            {isAuthenticated && <MobileLink to="/wishlist" onClick={() => setIsMenuOpen(false)}>Wishlist</MobileLink>}
                             {isAuthenticated && isAdmin && <MobileLink to="/admin" onClick={() => setIsMenuOpen(false)}>Admin</MobileLink>}
                             {isAuthenticated && (myShop?.status === 'ACTIVE' ? (
                                 <MobileLink to="/my-shop" onClick={() => setIsMenuOpen(false)}>Kênh người bán</MobileLink>

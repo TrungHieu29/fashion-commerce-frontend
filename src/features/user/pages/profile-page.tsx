@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useUserProfile, useAddresses, useUpdateProfile, useSetDefaultAddress, useDeleteAddress, useAddAddress, useChangePassword } from '../hooks/use-user';
-import { User, MapPin, Phone, Mail, Calendar, Plus, Trash2, X, AlertCircle, Package, History, ShieldCheck, KeyRound } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Calendar, Plus, Trash2, X, AlertCircle, Package, History, ShieldCheck, KeyRound, Heart } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,8 +22,10 @@ const ProfilePage = () => {
     const setDefault = useSetDefaultAddress();
     const deleteAddr = useDeleteAddress();
 
+    const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
-    const activeTab = (searchParams.get('tab') as 'info' | 'address' | 'orders' | 'history' | 'security') || 'info';
+    const activeTab = (searchParams.get('tab') as 'info' | 'address' | 'orders' | 'history' | 'security')
+        || (location.pathname.startsWith('/account/orders') ? 'orders' : 'info');
 
     const setActiveTab = (tab: string) => {
         setSearchParams({ tab });
@@ -33,58 +35,64 @@ const ProfilePage = () => {
     const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
-    if (profileLoading || addressLoading) return <div className="p-20 text-center">Đang tải...</div>;
+    if (profileLoading || addressLoading) return <div className="bg-[#F8F6F1] p-20 text-center text-zinc-500">Đang tải...</div>;
 
     return (
-        <div className="container mx-auto px-4 py-10 max-w-5xl">
-            <div className="flex flex-col md:flex-row gap-8">
+        <div className="min-h-screen bg-[#F8F6F1] px-4 py-10">
+            <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row">
                 {/* Sidebar */}
-                <div className="w-full md:w-1/4 space-y-2">
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 mb-6 text-center">
-                        <div className="w-24 h-24 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center text-blue-600 text-3xl font-bold">
+                <div className="w-full space-y-2 md:w-1/4">
+                    <div className="mb-6 border border-zinc-200 bg-white p-6 text-center">
+                        <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center bg-zinc-950 text-3xl font-semibold text-white">
                             {profile?.fullName ? profile.fullName.charAt(0) : 'U'}
                         </div>
-                        <h2 className="font-bold text-gray-900">{profile?.fullName}</h2>
-                        <p className="text-sm text-gray-500">@{profile?.username}</p>
+                        <h2 className="font-semibold text-zinc-950">{profile?.fullName}</h2>
+                        <p className="text-sm text-zinc-500">@{profile?.username}</p>
                     </div>
 
                     <button
                         onClick={() => setActiveTab('info')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'info' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex w-full items-center gap-3 border px-4 py-3 text-sm font-semibold transition-all ${activeTab === 'info' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-transparent text-zinc-600 hover:border-zinc-300 hover:bg-white'}`}
                     >
                         <User size={18} /> Thông tin cá nhân
                     </button>
                     <button
                         onClick={() => setActiveTab('address')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'address' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex w-full items-center gap-3 border px-4 py-3 text-sm font-semibold transition-all ${activeTab === 'address' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-transparent text-zinc-600 hover:border-zinc-300 hover:bg-white'}`}
                     >
                         <MapPin size={18} /> Địa chỉ giao hàng
                     </button>
                     <button
                         onClick={() => setActiveTab('orders')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'orders' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex w-full items-center gap-3 border px-4 py-3 text-sm font-semibold transition-all ${activeTab === 'orders' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-transparent text-zinc-600 hover:border-zinc-300 hover:bg-white'}`}
                     >
                         <Package size={18} /> Đơn hàng
                     </button>
+                    <Link
+                        to="/wishlist"
+                        className="flex w-full items-center gap-3 border border-transparent px-4 py-3 text-sm font-semibold text-zinc-600 transition-all hover:border-zinc-300 hover:bg-white"
+                    >
+                        <Heart size={18} /> Sản phẩm yêu thích
+                    </Link>
                     <button
                         onClick={() => setActiveTab('history')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex w-full items-center gap-3 border px-4 py-3 text-sm font-semibold transition-all ${activeTab === 'history' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-transparent text-zinc-600 hover:border-zinc-300 hover:bg-white'}`}
                     >
                         <History size={18} /> Lịch sử đơn hàng
                     </button>
                     <button
                         onClick={() => setActiveTab('security')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'security' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex w-full items-center gap-3 border px-4 py-3 text-sm font-semibold transition-all ${activeTab === 'security' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-transparent text-zinc-600 hover:border-zinc-300 hover:bg-white'}`}
                     >
                         <ShieldCheck size={18} /> Bảo mật
                     </button>
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 bg-white p-8 rounded-2xl border border-gray-100">
+                <div className="flex-1 border border-zinc-200 bg-white p-6 sm:p-8">
                     {activeTab === 'info' ? (
                         <div>
-                            <h3 className="text-xl font-bold mb-6">Thông tin cá nhân</h3>
+                            <h3 className="mb-6 text-xl font-semibold text-zinc-950">Thông tin cá nhân</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <InfoField label="Họ và tên" value={profile?.fullName} icon={<User size={16} />} />
                                 <InfoField label="Email" value={profile?.email} icon={<Mail size={16} />} />
@@ -94,7 +102,7 @@ const ProfilePage = () => {
                             </div>
                             <button
                                 onClick={() => setIsEditProfileOpen(true)}
-                                className="mt-8 px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-black transition-colors"
+                                className="mt-8 border border-zinc-950 bg-zinc-950 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#A68545] hover:border-[#A68545]"
                             >
                                 Chỉnh sửa thông tin
                             </button>
@@ -102,10 +110,10 @@ const ProfilePage = () => {
                     ) : activeTab === 'address' ? (
                         <div>
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold">Địa chỉ của tôi</h3>
+                                <h3 className="text-xl font-semibold text-zinc-950">Địa chỉ của tôi</h3>
                                 <button
                                     onClick={() => setIsAddAddressOpen(true)}
-                                    className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700"
+                                    className="flex items-center gap-2 text-sm font-semibold text-[#A68545] hover:text-zinc-950"
                                 >
                                     <Plus size={18} /> Thêm địa chỉ mới
                                 </button>

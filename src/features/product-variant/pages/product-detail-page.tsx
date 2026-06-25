@@ -264,6 +264,11 @@ const ProductDetailPage = () => {
                         )}
                     </div>
 
+                    <Link to={`/shops/${product.shopId}`} className="mb-4 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[#A68545] transition hover:text-zinc-950">
+                        <StoreIconFallback />
+                        {product.shopName || 'Xem shop'}
+                    </Link>
+
                     {/* TITLE */}
                     <h1 className="text-3xl font-bold text-gray-900">{product.productName}</h1>
 
@@ -298,7 +303,7 @@ const ProductDetailPage = () => {
                                         onClick={() => toggleSize(size)}
                                         disabled={!availableSizes.includes(size)}
                                         className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all ${selectedSize === size
-                                            ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
+                                            ? 'border-zinc-950 bg-zinc-950 text-white shadow-sm'
                                             : 'border-gray-200 text-gray-700 hover:border-gray-400'
                                             } ${!availableSizes.includes(size) ? 'cursor-not-allowed opacity-40' : ''}`}
                                     >
@@ -318,7 +323,7 @@ const ProductDetailPage = () => {
                                         onClick={() => toggleColor(color)}
                                         disabled={!availableColors.includes(color)}
                                         className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all ${selectedColor === color
-                                            ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
+                                            ? 'border-zinc-950 bg-zinc-950 text-white shadow-sm'
                                             : 'border-gray-200 text-gray-700 hover:border-gray-400'
                                             } ${!availableColors.includes(color) ? 'cursor-not-allowed opacity-40' : ''}`}
                                     >
@@ -369,7 +374,7 @@ const ProductDetailPage = () => {
                         {/* 3. NÚT CHAT NGAY ĐƯỢC THÊM VÀO ĐÂY */}
                         <button
                             onClick={handleChatWithShop}
-                            className="flex flex-col items-center justify-center border border-slate-200 text-slate-700 hover:bg-slate-50 h-12 px-5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+                            className="flex h-12 flex-col items-center justify-center border border-zinc-300 px-5 text-xs font-semibold text-zinc-700 transition-all hover:border-zinc-950 hover:bg-white active:scale-95"
                         >
                             <MessageSquare size={18} className="text-slate-900 mb-0.5" />
                             <span>Chat ngay</span>
@@ -379,8 +384,7 @@ const ProductDetailPage = () => {
                         <button
                             onClick={handleAddToCart}
                             disabled={isAdding}
-                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-lg font-bold text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 ${isAdding ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
-                                }`}
+                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-lg font-bold text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 ${isAdding ? 'bg-zinc-400' : 'bg-zinc-950 hover:bg-[#A68545]'}`}
                         >
                             {!isAdding && <ShoppingCart size={20} />}
                             {isAdding ? 'Đang thêm...' : !isVariantSelected ? 'Chọn phân loại' : 'Thêm vào giỏ hàng'}
@@ -478,3 +482,5 @@ const ProductDetailPage = () => {
 };
 
 export default ProductDetailPage;
+
+const StoreIconFallback = () => <span className="inline-block h-2 w-2 bg-[#A68545]" />;

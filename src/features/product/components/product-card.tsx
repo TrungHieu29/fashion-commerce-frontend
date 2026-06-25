@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { Eye, Heart, Package, ShoppingBag, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { useAuthStore } from '@/stores/auth.store';
+import { useIsWishlisted, useToggleWishlist } from '@/features/wishlist/hooks/use-wishlist';
 import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
 import type { ProductResponse } from '../types/product.types';
 import { getProductCategoryLabel } from '../types/product.types';
@@ -16,6 +18,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     const discountAmount = product.discountAmount ?? 0;
     const rating = product.rating ?? 0;
     const categoryLabel = getProductCategoryLabel(product);
+    const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+    const isWishlisted = useIsWishlisted(product.id);
+    const toggleWishlist = useToggleWishlist(product.id);
 
     const { data: productImages } = useQuery<ProductImageResponse[]>({
         queryKey: ['product-images', product.id],
@@ -54,8 +59,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 </Link>
 
                 <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
-                    <button className="flex h-9 w-9 items-center justify-center bg-white/90 text-zinc-950 shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white" aria-label="Thêm vào yêu thích">
-                        <Heart size={17} />
+                    <button
+                        onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            if (!isAuthenticated || toggleWishlist.isPending) return;
+                            toggleWishlist.mutate();
+                        }}
+                        className={`flex h-9 w-9 items-center justify-center bg-white/90 shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white ${isWishlisted ? 'text-red-500' : 'text-zinc-950'}`}
+                        aria-label={isWishlisted ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
+                        title={isAuthenticated ? undefined : 'Đăng nhập để thêm vào yêu thích'}
+                    >
+                        <Heart size={17} fill={isWishlisted ? 'currentColor' : 'none'} />
                     </button>
                     <Link to={`/product/${product.id}`} className="flex h-9 w-9 items-center justify-center bg-white/90 text-zinc-950 shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white" aria-label="Xem nhanh">
                         <Eye size={17} />

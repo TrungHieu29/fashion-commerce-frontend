@@ -60,16 +60,16 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F7FA] px-4 py-8">
-            <div className="mx-auto grid min-h-[calc(100vh-64px)] w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.10)] lg:grid-cols-[0.95fr_1.05fr]">
-                <section className="relative hidden overflow-hidden bg-[#881337] p-10 text-white lg:block">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(251,191,36,0.34),transparent_28%),radial-gradient(circle_at_78%_20%,rgba(244,114,182,0.42),transparent_30%),linear-gradient(135deg,#881337_0%,#BE123C_48%,#111827_100%)]" />
+        <div className="min-h-screen bg-[#F8F6F1] px-4 py-8">
+            <div className="mx-auto grid min-h-[calc(100vh-64px)] w-full max-w-6xl overflow-hidden border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(24,24,27,0.10)] lg:grid-cols-[0.95fr_1.05fr]">
+                <section className="relative hidden overflow-hidden bg-zinc-950 p-10 text-white lg:block">
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(9,9,11,0.95)_0%,rgba(39,39,42,0.78)_52%,rgba(166,133,69,0.62)_100%)]" />
                     <div className="relative z-10 flex h-full flex-col justify-between">
                         <Link to="/" className="inline-flex w-fit items-center gap-3 text-lg font-black">
                             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#BE123C]">
                                 <Sparkles size={22} />
                             </span>
-                            Fashion Commerce
+                            Voguish
                         </Link>
 
                         <div className="max-w-md">
@@ -93,7 +93,7 @@ const RegisterPage = () => {
                 <section className="flex items-center justify-center px-5 py-10 sm:px-10">
                     <div className="w-full max-w-[470px]">
                         <div className="mb-8">
-                            <p className="text-sm font-bold uppercase text-[#E11D48]">Đăng ký</p>
+                            <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#A68545]">Đăng ký</p>
                             <h2 className="mt-2 text-3xl font-black tracking-tight text-[#111827]">Tạo tài khoản mới</h2>
                             <p className="mt-3 text-sm leading-6 text-[#64748B]">
                                 Nhập Gmail hợp lệ để nhận OTP. Tài khoản chỉ được tạo sau khi xác thực thành công.
@@ -115,7 +115,7 @@ const RegisterPage = () => {
 
                         <p className="mt-8 text-center text-sm text-[#64748B]">
                             Đã có tài khoản?{' '}
-                            <Link to="/login" className="font-bold text-[#111827] hover:text-[#E11D48]">
+                            <Link to="/login" className="font-bold text-[#111827] hover:text-[#A68545]">
                                 Đăng nhập
                             </Link>
                         </p>

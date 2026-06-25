@@ -22,19 +22,19 @@ const ShopListPage = () => {
     if (isError) return <div className="p-20 text-center text-sm text-red-500">Không thể tải danh sách shop.</div>;
 
     return (
-        <div className="bg-slate-50">
-            <section className="border-b border-slate-200 bg-white">
-                <div className="mx-auto max-w-[1280px] px-4 py-10 lg:px-8">
+        <div className="min-h-screen bg-[#F8F6F1]">
+            <section className="border-b border-zinc-200 bg-white">
+                <div className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-10">
                     <div className="max-w-2xl">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                            <Store size={14} /> Danh sách shop
+                        <div className="inline-flex items-center gap-2 bg-zinc-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                            <Store size={14} /> Shop
                         </div>
-                        <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">Khám phá các shop đang bán</h1>
-                        <p className="mt-3 text-sm leading-6 text-slate-600">Tìm shop theo tên, địa chỉ, email hoặc chủ sở hữu. Chọn shop để xem thông tin và sản phẩm đang bán.</p>
+                        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 sm:text-6xl">Khám phá các shop đang bán</h1>
+                        <p className="mt-3 text-sm leading-6 text-zinc-500">Tìm shop theo tên, địa chỉ, email hoặc chủ sở hữu. Chọn shop để xem thông tin và sản phẩm đang bán.</p>
                     </div>
 
-                    <div className="mt-6 flex max-w-2xl items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4">
-                        <Search className="text-slate-400" size={18} />
+                    <div className="mt-6 flex max-w-2xl items-center gap-3 border border-zinc-300 bg-[#F8F6F1] px-4">
+                        <Search className="text-zinc-400" size={18} />
                         <input
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
@@ -45,13 +45,13 @@ const ShopListPage = () => {
                 </div>
             </section>
 
-            <main className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8">
+            <main className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
                 {filteredShops.length > 0 ? (
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                         {filteredShops.map(shop => (
-                            <Link key={shop.id} to={`/shops/${shop.id}`} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                            <Link key={shop.id} to={`/shops/${shop.id}`} className="group border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl">
                                 <div className="flex items-start gap-4">
-                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-slate-500">
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden bg-zinc-100 text-zinc-500">
                                         {shop.logo ? (
                                             <img src={shop.logo} alt={shop.shopName} className="h-full w-full object-cover" />
                                         ) : (
@@ -61,12 +61,12 @@ const ShopListPage = () => {
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
-                                                <h3 className="truncate text-lg font-black text-slate-950 group-hover:text-blue-600">{shop.shopName}</h3>
-                                                <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-slate-400">
+                                                <h3 className="truncate text-lg font-semibold text-zinc-950 group-hover:text-[#A68545]">{shop.shopName}</h3>
+                                                <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-zinc-400">
                                                     <UserRound size={13} /> {shop.ownerFullName || 'Chủ shop'}
                                                 </p>
                                             </div>
-                                            <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-600">{shop.status || 'Đang hoạt động'}</span>
+                                            <span className="bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase text-emerald-600">{shop.status || 'Đang hoạt động'}</span>
                                         </div>
                                         <div className="mt-4 space-y-2 text-sm text-slate-500">
                                             <p className="flex items-center gap-2"><Mail size={14} /> {shop.email || 'N/A'}</p>

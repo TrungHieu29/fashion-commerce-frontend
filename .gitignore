@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vite-dev*.log
+.vite-dev*.err.log

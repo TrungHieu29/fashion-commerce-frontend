@@ -17,16 +17,16 @@ const LoginPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#F5F7FA] px-4 py-8">
-            <div className="mx-auto grid min-h-[calc(100vh-64px)] w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.10)] lg:grid-cols-[1.05fr_0.95fr]">
-                <section className="relative hidden min-h-[640px] overflow-hidden bg-[#111827] p-10 text-white lg:block">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.35),transparent_28%),radial-gradient(circle_at_80%_10%,rgba(14,165,233,0.32),transparent_26%),linear-gradient(135deg,#111827_0%,#1F2937_52%,#0F172A_100%)]" />
+        <div className="min-h-screen bg-[#F8F6F1] px-4 py-8">
+            <div className="mx-auto grid min-h-[calc(100vh-64px)] w-full max-w-6xl overflow-hidden border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(24,24,27,0.10)] lg:grid-cols-[1.05fr_0.95fr]">
+                <section className="relative hidden min-h-[640px] overflow-hidden bg-zinc-950 p-10 text-white lg:block">
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(9,9,11,0.95)_0%,rgba(39,39,42,0.78)_52%,rgba(166,133,69,0.62)_100%)]" />
                     <div className="relative z-10 flex h-full flex-col justify-between">
                         <Link to="/" className="inline-flex w-fit items-center gap-3 text-lg font-black">
                             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#111827]">
                                 <ShoppingBag size={22} />
                             </span>
-                            Fashion Commerce
+                            Voguish
                         </Link>
 
                         <div className="max-w-md">
@@ -57,12 +57,12 @@ const LoginPage = () => {
                         <div className="mb-8 lg:hidden">
                             <Link to="/" className="inline-flex items-center gap-2 text-lg font-black text-[#111827]">
                                 <ShoppingBag size={24} />
-                                Fashion Commerce
+                                Voguish
                             </Link>
                         </div>
 
                         <div className="mb-8">
-                            <p className="text-sm font-bold uppercase text-[#EC4899]">Đăng nhập</p>
+                            <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#A68545]">Đăng nhập</p>
                             <h2 className="mt-2 text-3xl font-black tracking-tight text-[#111827]">Tiếp tục mua sắm</h2>
                             <p className="mt-3 text-sm leading-6 text-[#64748B]">
                                 Nhập tài khoản của bạn để truy cập giỏ hàng, đơn mua và kênh người bán.
@@ -80,7 +80,7 @@ const LoginPage = () => {
 
                         <p className="mt-8 text-center text-sm text-[#64748B]">
                             Chưa có tài khoản?{' '}
-                            <Link to="/register" className="font-bold text-[#111827] hover:text-[#EC4899]">
+                            <Link to="/register" className="font-bold text-[#111827] hover:text-[#A68545]">
                                 Đăng ký ngay
                             </Link>
                         </p>

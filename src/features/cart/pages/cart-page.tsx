@@ -84,7 +84,7 @@ const CartPage = () => {
                 </div>
                 <h2 className="text-2xl font-black text-slate-950">Giỏ hàng trống</h2>
                 <p className="mt-2 max-w-sm text-sm text-slate-500">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy quay lại cửa hàng để chọn sản phẩm ưng ý.</p>
-                <Link to="/" className="mt-8 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition-colors hover:bg-blue-700">
+                <Link to="/" className="mt-8 bg-zinc-950 px-8 py-3 font-semibold text-white transition-colors hover:bg-[#A68545]">
                     Tiếp tục mua sắm
                 </Link>
             </div>
@@ -92,13 +92,15 @@ const CartPage = () => {
     }
 
     return (
-        <div className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8">
+        <div className="min-h-screen bg-[#F8F6F1] px-4 py-8 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-[1440px]">
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-950">Giỏ hàng của bạn</h1>
-                    <p className="mt-1 text-sm text-slate-500">{cartItems.length} sản phẩm, đã chọn {selectedItemIds.length} sản phẩm</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A68545]">Cart</p>
+                    <h1 className="mt-2 text-4xl font-semibold tracking-tight text-zinc-950">Giỏ hàng của bạn</h1>
+                    <p className="mt-1 text-sm text-zinc-500">{cartItems.length} sản phẩm, đã chọn {selectedItemIds.length} sản phẩm</p>
                 </div>
-                <button onClick={toggleAll} className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50">
+                <button onClick={toggleAll} className="inline-flex h-11 items-center gap-2 border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 hover:border-zinc-950">
                     <CheckSquare size={17} />
                     {isAllSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
                 </button>
@@ -112,15 +114,15 @@ const CartPage = () => {
                         const allShopSelected = selectedInShop === shopItemIds.length;
 
                         return (
-                            <section key={group.shopId} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+                            <section key={group.shopId} className="overflow-hidden border border-zinc-200 bg-white">
+                                <div className="flex items-center gap-3 border-b border-zinc-100 bg-[#F8F6F1] px-4 py-3">
                                     <input
                                         type="checkbox"
                                         checked={allShopSelected}
                                         onChange={() => toggleShop(group.shopId)}
                                         className="h-4 w-4 accent-blue-600"
                                     />
-                                    <Store size={18} className="text-blue-600" />
+                                    <Store size={18} className="text-[#A68545]" />
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-black text-slate-950">{group.shopName}</p>
                                         <p className="text-xs text-slate-400">Đã chọn {selectedInShop}/{group.items.length} sản phẩm</p>
@@ -142,8 +144,8 @@ const CartPage = () => {
                 </div>
 
                 <aside className="lg:sticky lg:top-24 lg:h-fit">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h3 className="text-lg font-black text-slate-950">Tóm tắt đơn hàng</h3>
+                    <div className="border border-zinc-200 bg-white p-6">
+                        <h3 className="text-lg font-semibold text-zinc-950">Tóm tắt đơn hàng</h3>
                         <div className="mt-5 space-y-4 text-sm">
                             <div className="flex justify-between text-slate-600">
                                 <span>Sản phẩm đã chọn</span>
@@ -159,8 +161,8 @@ const CartPage = () => {
                             </div>
                             <div className="border-t border-slate-200 pt-4">
                                 <div className="flex items-end justify-between">
-                                    <span className="text-base font-black text-slate-950">Tổng cộng</span>
-                                    <span className="text-2xl font-black text-blue-600">{selectedSubtotal.toLocaleString('vi-VN')}đ</span>
+                                    <span className="text-base font-semibold text-zinc-950">Tổng cộng</span>
+                                    <span className="text-2xl font-semibold text-zinc-950">{selectedSubtotal.toLocaleString('vi-VN')}đ</span>
                                 </div>
                             </div>
                         </div>
@@ -168,13 +170,14 @@ const CartPage = () => {
                         <button
                             onClick={handleCheckout}
                             disabled={selectedItemIds.length === 0}
-                            className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-base font-black text-white shadow-lg shadow-blue-100 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                            className="mt-6 flex h-12 w-full items-center justify-center gap-2 bg-zinc-950 text-base font-semibold text-white transition-colors hover:bg-[#A68545] disabled:cursor-not-allowed disabled:bg-zinc-300"
                         >
                             Tiến hành thanh toán <ArrowRight size={18} />
                         </button>
                     </div>
                 </aside>
             </div>
+        </div>
         </div>
     );
 };

@@ -4,11 +4,13 @@ import { Navbar } from '@/components/layout/navbar';
 import { ChatLauncher } from '@/features/chat/components/chat-launcher';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChatStore } from '@/stores/use.chat.store';
+import { useNotificationRealtime } from '@/features/notification/hooks/use-notifications';
 
 const MainLayout = () => {
     const token = useAuthStore(state => state.token);
     const connectWebSocket = useChatStore(s => s.connectWebSocket);
     const disconnectWebSocket = useChatStore(s => s.disconnectWebSocket);
+    useNotificationRealtime();
 
     useEffect(() => {
         if (token) {
@@ -30,7 +32,7 @@ const MainLayout = () => {
 
             <footer>
                 <div className="py-4 text-center text-sm text-gray-500">
-                    (c) 2026 Fashion Commerce. All rights reserved.
+                    (c) 2026 Voguish. All rights reserved.
                 </div>
             </footer>
 

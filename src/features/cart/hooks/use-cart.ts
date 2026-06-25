@@ -27,6 +27,7 @@ export const useAddToCart = () => {
         mutationFn: (data: AddToCartRequest) => addToCart(user!.id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cart', user?.id] });
+            window.dispatchEvent(new Event('cart-updated'));
         },
         onError: () => {
             toast.error('Sản phẩm hiện đã hết hàng');

@@ -1,7 +1,7 @@
 function App() {
   return (
     <>
-      <div>Fashion Commerce Frontend</div>
+      <div>Voguish Frontend</div>
     </>
   )
 }

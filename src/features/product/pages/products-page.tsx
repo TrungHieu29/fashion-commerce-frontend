@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
     ArrowRight,
@@ -9,9 +10,7 @@ import {
     PackageSearch,
     Search,
     ShieldCheck,
-    ShoppingBag,
     SlidersHorizontal,
-    Sparkles,
     Star,
     Truck,
     X,
@@ -49,13 +48,13 @@ const SORT_OPTIONS = [
 const BANNERS = [
     {
         image: image1,
-        eyebrow: 'Spring Editorial',
+        eyebrow: 'Bộ sưu tập mới',
         title: 'Minimal silhouettes for everyday confidence',
         description: 'Khám phá các thiết kế mới với phom dáng tinh gọn, chất liệu dễ mặc và tinh thần thành thị.',
     },
     {
         image: image2,
-        eyebrow: 'New Arrivals',
+        eyebrow: 'Sản phẩm mới',
         title: 'Curated layers, quiet luxury details',
         description: 'Những lựa chọn nổi bật từ các shop đang bán chạy, được sắp xếp để bạn dễ tìm cảm hứng.',
     },
@@ -126,7 +125,6 @@ const ProductsPage = () => {
         return sortProducts(filtered, sortBy);
     }, [allProducts, searchTerm, selectedCategory, selectedBrand, selectedPriceRange, sortBy]);
 
-    const heroProduct = filteredProducts[0] || allProducts[0];
     const saleProducts = useMemo(() => filteredProducts.filter(product => (product.discountAmount || 0) > 0).slice(0, 4), [filteredProducts]);
     const topProducts = useMemo(() => filteredProducts.filter(product => (product.rating || 0) >= 4).slice(0, 4), [filteredProducts]);
     const visibleProducts = filteredProducts.slice(0, visibleCount);
@@ -155,9 +153,8 @@ const ProductsPage = () => {
 
     return (
         <div className="bg-[#F8F6F1] text-zinc-950">
-            <HeroEditorial
+            <HeroSection
                 activeIndex={activeBanner}
-                product={heroProduct}
                 onPrev={prevBanner}
                 onNext={nextBanner}
                 onSelect={setActiveBanner}
@@ -165,11 +162,6 @@ const ProductsPage = () => {
 
             <main className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
                 <CategoryBar categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
-
-                <section className="mt-8 grid gap-4 lg:grid-cols-[1.45fr_0.9fr]">
-                    <EditorialPanel title="New Arrivals" text="Những sản phẩm mới được chọn lọc cho phong cách hiện đại, gọn và dễ phối." products={filteredProducts.slice(0, 2)} />
-                    <EditorialPanel title="Shop the Look" text="Gợi ý phối đồ nhanh từ các sản phẩm nổi bật trong bộ sưu tập hiện tại." products={topProducts.slice(0, 2)} compact />
-                </section>
 
                 <section className="mt-10">
                     <div className="flex flex-col gap-4 border-y border-zinc-200 py-5 lg:flex-row lg:items-center lg:justify-between">
@@ -214,15 +206,29 @@ const ProductsPage = () => {
                 </section>
 
                 <ProductSection
-                    title="Sale Edit"
-                    subtitle="Ưu đãi đang nổi bật"
+                    title="Flash Sale"
+                    subtitle="Sản phẩm đang có ưu đãi tốt"
                     products={saleProducts}
                     icon={BadgePercent}
                     loading={isLoading}
+                    viewAllTo="/products/flash-sale"
                     subtle
                 />
 
+                <ProductSection
+                    title="Sản phẩm hot"
+                    subtitle="Sản phẩm được đánh giá tốt"
+                    products={topProducts}
+                    icon={Star}
+                    loading={isLoading}
+                    viewAllTo="/products/hot"
+                />
+
                 <section className="mt-10">
+                    <div className="mb-6">
+                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A68545]">Catalog</p>
+                        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">Tất cả sản phẩm</h2>
+                    </div>
                     {isLoading ? (
                         <ProductSkeleton />
                     ) : visibleProducts.length > 0 ? (
@@ -245,14 +251,6 @@ const ProductsPage = () => {
                         <div className="border border-dashed border-zinc-300 bg-white/60 py-16 text-center text-sm text-zinc-500">Chưa có sản phẩm phù hợp.</div>
                     )}
                 </section>
-
-                <ProductSection
-                    title="Customer Favorites"
-                    subtitle="Sản phẩm được đánh giá tốt"
-                    products={topProducts}
-                    icon={Star}
-                    loading={isLoading}
-                />
             </main>
 
             <section className="border-t border-zinc-200 bg-white">
@@ -307,15 +305,13 @@ const sortProducts = (products: ProductResponse[], sortBy: string) => {
     });
 };
 
-const HeroEditorial = ({
+const HeroSection = ({
     activeIndex,
-    product,
     onPrev,
     onNext,
     onSelect,
 }: {
     activeIndex: number;
-    product?: ProductResponse;
     onPrev: () => void;
     onNext: () => void;
     onSelect: (index: number) => void;
@@ -332,14 +328,9 @@ const HeroEditorial = ({
                     <h1 className="text-4xl font-semibold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">{banner.title}</h1>
                     <p className="mt-5 max-w-xl text-sm leading-7 text-white/78 sm:text-base">{banner.description}</p>
                     <div className="mt-8 flex flex-wrap items-center gap-3">
-                        <a href="#catalog" className="inline-flex h-12 items-center gap-2 bg-white px-5 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-950 transition hover:bg-[#D6B36A]">
-                            Shop now <ShoppingBag size={16} />
-                        </a>
-                        {product && (
-                            <a href={`/product/${product.id}`} className="inline-flex h-12 items-center gap-2 border border-white/45 px-5 text-sm font-semibold uppercase tracking-[0.18em] transition hover:border-white hover:bg-white/10">
-                                Featured piece <ArrowRight size={16} />
-                            </a>
-                        )}
+                        <Link to="/shops" className="inline-flex h-12 items-center gap-2 bg-white px-5 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-950 transition hover:bg-[#D6B36A]">
+                            Xem shop <ArrowRight size={16} />
+                        </Link>
                     </div>
                 </div>
 
@@ -391,39 +382,11 @@ const CategoryButton = ({ active, onClick, children }: { active: boolean; onClic
     </button>
 );
 
-const EditorialPanel = ({ title, text, products, compact = false }: { title: string; text: string; products: ProductResponse[]; compact?: boolean }) => (
-    <article className="grid overflow-hidden bg-white md:grid-cols-2">
-        <div className="flex min-h-[260px] flex-col justify-between p-6 sm:p-8">
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A68545]">Editorial</p>
-                <h2 className={`${compact ? 'text-2xl' : 'text-3xl sm:text-4xl'} mt-3 font-semibold tracking-tight`}>{title}</h2>
-                <p className="mt-4 text-sm leading-6 text-zinc-500">{text}</p>
-            </div>
-            {products[0] && (
-                <a href={`/product/${products[0].id}`} className="mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-950">
-                    Khám phá <ArrowRight size={16} />
-                </a>
-            )}
-        </div>
-        <div className="grid min-h-[260px] grid-cols-2 gap-px bg-zinc-200">
-            {(products.length ? products : [undefined, undefined]).slice(0, 2).map((product, index) => (
-                <a key={product?.id || index} href={product ? `/product/${product.id}` : '#catalog'} className="group relative overflow-hidden bg-zinc-100">
-                    {product?.imageUrl ? (
-                        <img src={product.imageUrl} alt={product.productName} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                    ) : (
-                        <div className="flex h-full items-center justify-center text-zinc-300"><Sparkles size={34} /></div>
-                    )}
-                </a>
-            ))}
-        </div>
-    </article>
-);
-
-const ProductSection = ({ title, subtitle, products, icon: Icon, loading, subtle = false }: { title: string; subtitle: string; products: ProductResponse[]; icon: any; loading: boolean; subtle?: boolean }) => {
+const ProductSection = ({ title, subtitle, products, icon: Icon, loading, subtle = false, viewAllTo }: { title: string; subtitle: string; products: ProductResponse[]; icon: any; loading: boolean; subtle?: boolean; viewAllTo?: string }) => {
     if (!loading && products.length === 0) return null;
 
     return (
-        <section id={title === 'Sale Edit' ? 'catalog' : undefined} className={`mt-10 ${subtle ? 'bg-[#EFE8DB]' : 'bg-white'} p-4 sm:p-6`}>
+        <section id={title === 'Flash Sale' ? 'catalog' : undefined} className={`mt-10 ${subtle ? 'bg-[#EFE8DB]' : 'bg-white'} p-4 sm:p-6`}>
             <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
                     <div className="mb-3 inline-flex h-10 w-10 items-center justify-center bg-zinc-950 text-white">
@@ -432,7 +395,14 @@ const ProductSection = ({ title, subtitle, products, icon: Icon, loading, subtle
                     <h2 className="text-2xl font-semibold tracking-tight text-zinc-950">{title}</h2>
                     <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
                 </div>
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">{products.length} items</span>
+                <div className="flex items-center gap-4">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">{products.length} items</span>
+                    {viewAllTo && (
+                        <Link to={viewAllTo} className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-950 transition hover:text-[#A68545]">
+                            Xem tất cả
+                        </Link>
+                    )}
+                </div>
             </div>
             {loading ? (
                 <ProductSkeleton />

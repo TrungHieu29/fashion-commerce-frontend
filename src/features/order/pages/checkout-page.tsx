@@ -214,9 +214,13 @@ const CheckoutPage = () => {
     }
 
     return (
-        <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="min-h-screen bg-[#F8F6F1] px-4 py-10 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-6xl">
             <div className="mb-8 flex items-center justify-between">
-                <h1 className="text-3xl font-black tracking-tight text-slate-950">Thanh toán</h1>
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A68545]">Checkout</p>
+                    <h1 className="mt-2 text-4xl font-semibold tracking-tight text-zinc-950">Thanh toán</h1>
+                </div>
                 <button
                     onClick={() => navigate('/cart')}
                     className="flex items-center gap-2 rounded-xl px-4 py-2 font-bold text-slate-500 transition-colors hover:bg-red-50 hover:text-red-500"
@@ -227,7 +231,7 @@ const CheckoutPage = () => {
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <div className="space-y-8 lg:col-span-2">
-                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <section className="border border-zinc-200 bg-white p-6">
                         <div className="mb-6 flex items-center justify-between">
                             <div className="flex items-center gap-2 text-blue-600">
                                 <MapPin size={20} />
@@ -271,8 +275,8 @@ const CheckoutPage = () => {
                         </div>
                     </section>
 
-                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div className="mb-6 flex items-center gap-2 text-emerald-600">
+                    <section className="border border-zinc-200 bg-white p-6">
+                        <div className="mb-6 flex items-center gap-2 text-[#A68545]">
                             <CreditCard size={20} />
                             <h2 className="text-lg font-black text-slate-950">Phương thức thanh toán</h2>
                         </div>
@@ -280,7 +284,7 @@ const CheckoutPage = () => {
                             <button
                                 onClick={() => setPaymentMethod('COD')}
                                 className={`rounded-xl border-2 p-4 text-sm font-black transition-colors ${
-                                    paymentMethod === 'COD' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-slate-100 text-slate-700'
+                                    paymentMethod === 'COD' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-slate-100 text-slate-700'
                                 }`}
                             >
                                 Thanh toán khi nhận hàng
@@ -288,7 +292,7 @@ const CheckoutPage = () => {
                             <button
                                 onClick={() => setPaymentMethod('VNPAY')}
                                 className={`rounded-xl border-2 p-4 text-sm font-black transition-colors ${
-                                    paymentMethod === 'VNPAY' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-slate-100 text-slate-700'
+                                    paymentMethod === 'VNPAY' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-slate-100 text-slate-700'
                                 }`}
                             >
                                 VNPAY QR mockup
@@ -296,7 +300,7 @@ const CheckoutPage = () => {
                             <button
                                 onClick={() => setPaymentMethod('MOMO')}
                                 className={`rounded-xl border-2 p-4 text-sm font-black transition-colors ${
-                                    paymentMethod === 'MOMO' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-slate-100 text-slate-700'
+                                    paymentMethod === 'MOMO' ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-slate-100 text-slate-700'
                                 }`}
                             >
                                 MOMO QR mockup
@@ -304,7 +308,7 @@ const CheckoutPage = () => {
                         </div>
                     </section>
 
-                    <section className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <section className="space-y-8 border border-zinc-200 bg-white p-6">
                         <div className="flex items-center gap-2 text-violet-600">
                             <ShoppingBag size={20} />
                             <h2 className="text-lg font-black text-slate-950">Sản phẩm đặt mua</h2>
@@ -323,7 +327,7 @@ const CheckoutPage = () => {
                 </div>
 
                 <aside className="lg:col-span-1">
-                    <div className="sticky top-8 rounded-3xl bg-slate-950 p-8 text-white shadow-xl">
+                    <div className="sticky top-24 bg-zinc-950 p-8 text-white shadow-xl">
                         <h3 className="mb-6 text-xl font-black tracking-tight">Tổng đơn hàng</h3>
                         <div className="space-y-4 text-sm font-medium">
                             <div className="flex justify-between text-slate-300">
@@ -351,7 +355,7 @@ const CheckoutPage = () => {
                         <button
                             onClick={handlePlaceOrder}
                             disabled={checkoutMutation.isPending}
-                            className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-4 font-black text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                            className="mt-8 flex w-full items-center justify-center gap-2 bg-white py-4 font-semibold text-zinc-950 transition-colors hover:bg-[#D6B36A] disabled:opacity-50"
                         >
                             {checkoutMutation.isPending ? <Loader2 className="animate-spin" size={20} /> : 'Đặt hàng ngay'}
                         </button>
@@ -404,6 +408,7 @@ const CheckoutPage = () => {
                     }}
                 />
             )}
+        </div>
         </div>
     );
 };
