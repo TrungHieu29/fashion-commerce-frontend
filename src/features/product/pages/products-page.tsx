@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-    ArrowDownAZ,
+    ArrowRight,
     BadgePercent,
     ChevronLeft,
     ChevronRight,
     Filter,
-    Flame,
     PackageSearch,
     Search,
     ShieldCheck,
+    ShoppingBag,
     SlidersHorizontal,
+    Sparkles,
     Star,
     Truck,
     X,
@@ -48,23 +49,26 @@ const SORT_OPTIONS = [
 const BANNERS = [
     {
         image: image1,
-        title: 'Ưu đãi thời trang mới mỗi ngày',
-        description: 'Khám phá các sản phẩm nổi bật, giá tốt và gian hàng đang bán chạy.',
+        eyebrow: 'Spring Editorial',
+        title: 'Minimal silhouettes for everyday confidence',
+        description: 'Khám phá các thiết kế mới với phom dáng tinh gọn, chất liệu dễ mặc và tinh thần thành thị.',
     },
     {
         image: image2,
-        title: 'Flash Sale dành cho bạn',
-        description: 'Săn sản phẩm đang giảm giá mạnh theo từng danh mục yêu thích.',
+        eyebrow: 'New Arrivals',
+        title: 'Curated layers, quiet luxury details',
+        description: 'Những lựa chọn nổi bật từ các shop đang bán chạy, được sắp xếp để bạn dễ tìm cảm hứng.',
     },
     {
         image: image3,
-        title: 'Mua sắm theo phong cách riêng',
-        description: 'Lọc nhanh theo thương hiệu, danh mục và khoảng giá phù hợp.',
+        eyebrow: 'Seasonal Sale',
+        title: 'Elevated essentials at better prices',
+        description: 'Săn ưu đãi thời trang theo danh mục, thương hiệu và khoảng giá phù hợp.',
     },
 ];
 
 const ProductsPage = () => {
-    const [page, setPage] = useState(0);
+    const [page] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedBrand, setSelectedBrand] = useState('all');
@@ -72,11 +76,9 @@ const ProductsPage = () => {
     const [sortBy, setSortBy] = useState('newest');
     const [showFilters, setShowFilters] = useState(false);
     const [activeBanner, setActiveBanner] = useState(0);
-    const [flashVisible, setFlashVisible] = useState(PAGE_STEP);
-    const [hotVisible, setHotVisible] = useState(PAGE_STEP);
-    const [allVisible, setAllVisible] = useState(PAGE_STEP);
+    const [visibleCount, setVisibleCount] = useState(12);
 
-    const { data: productPage, isLoading, isError } = useProducts({ page, size: 48, sort: 'id,desc' });
+    const { data: productPage, isLoading, isError } = useProducts({ page, size: 96, sort: 'id,desc' });
 
     const { data: categories = [] } = useQuery<Category[]>({
         queryKey: ['categories'],
@@ -91,16 +93,14 @@ const ProductsPage = () => {
     useEffect(() => {
         const timer = window.setInterval(() => {
             setActiveBanner(current => (current + 1) % BANNERS.length);
-        }, 4500);
+        }, 5200);
 
         return () => window.clearInterval(timer);
     }, []);
 
     useEffect(() => {
-        setFlashVisible(PAGE_STEP);
-        setHotVisible(PAGE_STEP);
-        setAllVisible(PAGE_STEP);
-    }, [searchTerm, selectedCategory, selectedBrand, selectedPriceRange, sortBy, page]);
+        setVisibleCount(12);
+    }, [searchTerm, selectedCategory, selectedBrand, selectedPriceRange, sortBy]);
 
     const allProducts = productPage?.content || [];
 
@@ -126,26 +126,11 @@ const ProductsPage = () => {
         return sortProducts(filtered, sortBy);
     }, [allProducts, searchTerm, selectedCategory, selectedBrand, selectedPriceRange, sortBy]);
 
-    const flashSaleProducts = useMemo(() => {
-        return sortProducts(
-            filteredProducts.filter((product: ProductResponse) => (product.discountAmount || 0) > 0),
-            sortBy
-        );
-    }, [filteredProducts, sortBy]);
-
-    const hotProducts = useMemo(() => {
-        return sortProducts(
-            filteredProducts.filter((product: ProductResponse) => (product.rating || 0) >= 4),
-            sortBy
-        );
-    }, [filteredProducts, sortBy]);
-
+    const heroProduct = filteredProducts[0] || allProducts[0];
+    const saleProducts = useMemo(() => filteredProducts.filter(product => (product.discountAmount || 0) > 0).slice(0, 4), [filteredProducts]);
+    const topProducts = useMemo(() => filteredProducts.filter(product => (product.rating || 0) >= 4).slice(0, 4), [filteredProducts]);
+    const visibleProducts = filteredProducts.slice(0, visibleCount);
     const activeFilterCount = [selectedCategory, selectedBrand, selectedPriceRange].filter(value => value !== 'all').length + (searchTerm.trim() ? 1 : 0);
-
-    const selectCategory = (categoryId: string) => {
-        setSelectedCategory(categoryId);
-        setPage(0);
-    };
 
     const resetFilters = () => {
         setSearchTerm('');
@@ -153,7 +138,6 @@ const ProductsPage = () => {
         setSelectedBrand('all');
         setSelectedPriceRange('all');
         setSortBy('newest');
-        setPage(0);
     };
 
     const nextBanner = () => setActiveBanner(current => (current + 1) % BANNERS.length);
@@ -163,112 +147,116 @@ const ProductsPage = () => {
         return (
             <div className="mx-auto flex min-h-[520px] max-w-lg flex-col items-center justify-center px-6 text-center">
                 <PackageSearch className="text-red-500" size={42} />
-                <h1 className="mt-4 text-xl font-black text-slate-950">Không tải được sản phẩm</h1>
-                <p className="mt-2 text-sm text-slate-500">Vui lòng kiểm tra backend hoặc thử tải lại trang.</p>
+                <h1 className="mt-4 text-xl font-black text-zinc-950">Không tải được sản phẩm</h1>
+                <p className="mt-2 text-sm text-zinc-500">Vui lòng kiểm tra backend hoặc thử tải lại trang.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-slate-50">
-            <section className="border-b border-slate-200 bg-white">
-                <div className="mx-auto max-w-[1280px] px-4 py-6 lg:px-8">
-                    <BannerSlider activeIndex={activeBanner} onPrev={prevBanner} onNext={nextBanner} onSelect={setActiveBanner} />
-                </div>
-            </section>
+        <div className="bg-[#F8F6F1] text-zinc-950">
+            <HeroEditorial
+                activeIndex={activeBanner}
+                product={heroProduct}
+                onPrev={prevBanner}
+                onNext={nextBanner}
+                onSelect={setActiveBanner}
+            />
 
-            <main className="mx-auto max-w-[1280px] space-y-8 px-4 py-8 lg:px-8">
-                <CategoryBar
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onSelect={selectCategory}
+            <main className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
+                <CategoryBar categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
+
+                <section className="mt-8 grid gap-4 lg:grid-cols-[1.45fr_0.9fr]">
+                    <EditorialPanel title="New Arrivals" text="Những sản phẩm mới được chọn lọc cho phong cách hiện đại, gọn và dễ phối." products={filteredProducts.slice(0, 2)} />
+                    <EditorialPanel title="Shop the Look" text="Gợi ý phối đồ nhanh từ các sản phẩm nổi bật trong bộ sưu tập hiện tại." products={topProducts.slice(0, 2)} compact />
+                </section>
+
+                <section className="mt-10">
+                    <div className="flex flex-col gap-4 border-y border-zinc-200 py-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A68545]">Curated Catalog</p>
+                            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">Sản phẩm nổi bật</h2>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <div className="flex h-11 min-w-0 items-center gap-2 border border-zinc-300 bg-white px-3">
+                                <Search className="text-zinc-400" size={18} />
+                                <input
+                                    value={searchTerm}
+                                    onChange={event => setSearchTerm(event.target.value)}
+                                    placeholder="Tìm áo khoác, váy, sneaker..."
+                                    className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                                />
+                            </div>
+                            <button
+                                onClick={() => setShowFilters(true)}
+                                className="inline-flex h-11 items-center justify-center gap-2 border border-zinc-950 bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-[#A68545] hover:border-[#A68545]"
+                            >
+                                <SlidersHorizontal size={17} />
+                                Bộ lọc {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+                            </button>
+                            <select
+                                value={sortBy}
+                                onChange={event => setSortBy(event.target.value)}
+                                className="h-11 border border-zinc-300 bg-white px-3 text-sm font-semibold text-zinc-700 outline-none focus:border-zinc-950"
+                            >
+                                {SORT_OPTIONS.map(option => (
+                                    <option key={option.id} value={option.id}>{option.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {activeFilterCount > 0 && (
+                        <button onClick={resetFilters} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 transition hover:text-zinc-950">
+                            <X size={15} /> Xóa bộ lọc hiện tại
+                        </button>
+                    )}
+                </section>
+
+                <ProductSection
+                    title="Sale Edit"
+                    subtitle="Ưu đãi đang nổi bật"
+                    products={saleProducts}
+                    icon={BadgePercent}
+                    loading={isLoading}
+                    subtle
                 />
 
-                <section className="space-y-8">
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3">
-                                    <Search className="text-slate-400" size={18} />
-                                    <input
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                        placeholder="Tìm áo khoác, váy, sneaker..."
-                                        className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none"
-                                    />
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <button
-                                        onClick={() => setShowFilters(true)}
-                                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
-                                    >
-                                        <SlidersHorizontal size={17} />
-                                        Bộ lọc {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
-                                    </button>
-                                    <span className="hidden items-center gap-2 text-xs font-bold uppercase text-slate-400 sm:inline-flex">
-                                        <ArrowDownAZ size={15} /> Sắp xếp
-                                    </span>
-                                    <select
-                                        value={sortBy}
-                                        onChange={e => setSortBy(e.target.value)}
-                                        className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
-                                    >
-                                        {SORT_OPTIONS.map(option => (
-                                            <option key={option.id} value={option.id}>{option.label}</option>
-                                        ))}
-                                    </select>
-                                    {activeFilterCount > 0 && (
-                                        <button onClick={resetFilters} className="inline-flex h-11 items-center gap-1 rounded-xl border border-slate-200 px-3 text-sm font-bold text-slate-500 hover:bg-slate-50">
-                                            <X size={15} /> Xóa lọc
-                                        </button>
-                                    )}
-                                </div>
+                <section className="mt-10">
+                    {isLoading ? (
+                        <ProductSkeleton />
+                    ) : visibleProducts.length > 0 ? (
+                        <>
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 xl:grid-cols-4">
+                                {visibleProducts.map(product => <ProductCard key={product.id} product={product} />)}
                             </div>
-                        </div>
-
-                        <ProductSection
-                            title="Flash Sale"
-                            subtitle="Sản phẩm đang giảm giá, ưu tiên mức giảm cao nhất"
-                            icon={Flame}
-                            products={flashSaleProducts}
-                            visibleCount={flashVisible}
-                            onShowMore={() => setFlashVisible(count => count + PAGE_STEP)}
-                            tone="flash"
-                            isLoading={isLoading}
-                        />
-
-                        <ProductSection
-                            title="Sản phẩm hot"
-                            subtitle="Sản phẩm từ 4 sao trở lên, sắp xếp theo đánh giá cao nhất"
-                            icon={Star}
-                            products={hotProducts}
-                            visibleCount={hotVisible}
-                            onShowMore={() => setHotVisible(count => count + PAGE_STEP)}
-                            tone="default"
-                            isLoading={isLoading}
-                        />
-
-                        <ProductSection
-                            title="Tất cả sản phẩm"
-                            subtitle={`Đang lọc được ${filteredProducts.length} sản phẩm trong trang hiện tại`}
-                            icon={PackageSearch}
-                            products={filteredProducts}
-                            visibleCount={allVisible}
-                            onShowMore={() => setAllVisible(count => count + PAGE_STEP)}
-                            tone="default"
-                            isLoading={isLoading}
-                        />
-
-                        <div className="flex items-center justify-center gap-4 pt-2">
-                            <button disabled={page === 0} onClick={() => setPage(old => Math.max(0, old - 1))} className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm disabled:cursor-not-allowed disabled:opacity-40">Trang trước</button>
-                            <span className="text-sm font-bold text-slate-600">Trang {page + 1} / {productPage?.totalPages || 1}</span>
-                            <button disabled={page >= (productPage?.totalPages || 1) - 1} onClick={() => setPage(old => old + 1)} className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm disabled:cursor-not-allowed disabled:opacity-40">Trang sau</button>
-                        </div>
+                            {visibleCount < filteredProducts.length && (
+                                <div className="mt-10 flex justify-center">
+                                    <button
+                                        onClick={() => setVisibleCount(count => count + PAGE_STEP)}
+                                        className="inline-flex h-12 items-center gap-2 border border-zinc-950 bg-white px-6 text-sm font-semibold uppercase tracking-[0.18em] transition hover:bg-zinc-950 hover:text-white"
+                                    >
+                                        Xem thêm <ArrowRight size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="border border-dashed border-zinc-300 bg-white/60 py-16 text-center text-sm text-zinc-500">Chưa có sản phẩm phù hợp.</div>
+                    )}
                 </section>
+
+                <ProductSection
+                    title="Customer Favorites"
+                    subtitle="Sản phẩm được đánh giá tốt"
+                    products={topProducts}
+                    icon={Star}
+                    loading={isLoading}
+                />
             </main>
 
-            <section className="border-t border-slate-200 bg-white">
-                <div className="mx-auto grid max-w-[1280px] gap-4 px-4 py-6 sm:grid-cols-3 lg:px-8">
+            <section className="border-t border-zinc-200 bg-white">
+                <div className="mx-auto grid max-w-[1440px] gap-0 px-4 py-8 sm:px-6 md:grid-cols-3 lg:px-10">
                     <TrustItem icon={Truck} title="Giao hàng linh hoạt" text="Theo dõi đơn và vận chuyển theo từng shop." />
                     <TrustItem icon={ShieldCheck} title="Shop xác thực" text="Thông tin shop, đánh giá và sản phẩm rõ ràng." />
                     <TrustItem icon={BadgePercent} title="Ưu đãi theo shop" text="Áp dụng voucher và giá giảm khi thanh toán." />
@@ -276,11 +264,14 @@ const ProductsPage = () => {
             </section>
 
             {showFilters && (
-                <div className="fixed inset-0 z-[60] bg-slate-950/40 p-4">
-                    <div className="ml-auto flex h-full max-w-sm flex-col rounded-2xl bg-white p-4 shadow-2xl">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-lg font-black text-slate-950">Bộ lọc</h3>
-                            <button onClick={() => setShowFilters(false)} className="rounded-xl p-2 hover:bg-slate-100"><X size={18} /></button>
+                <div className="fixed inset-0 z-[60] bg-zinc-950/45 p-3 backdrop-blur-sm">
+                    <div className="ml-auto flex h-full w-full max-w-sm flex-col bg-white p-5 shadow-2xl">
+                        <div className="mb-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A68545]">Refine</p>
+                                <h3 className="text-xl font-semibold text-zinc-950">Bộ lọc</h3>
+                            </div>
+                            <button onClick={() => setShowFilters(false)} className="p-2 hover:bg-zinc-100" aria-label="Đóng bộ lọc"><X size={18} /></button>
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto">
                             <FilterPanel
@@ -316,130 +307,151 @@ const sortProducts = (products: ProductResponse[], sortBy: string) => {
     });
 };
 
-const BannerSlider = ({ activeIndex, onPrev, onNext, onSelect }: { activeIndex: number; onPrev: () => void; onNext: () => void; onSelect: (index: number) => void }) => {
+const HeroEditorial = ({
+    activeIndex,
+    product,
+    onPrev,
+    onNext,
+    onSelect,
+}: {
+    activeIndex: number;
+    product?: ProductResponse;
+    onPrev: () => void;
+    onNext: () => void;
+    onSelect: (index: number) => void;
+}) => {
     const banner = BANNERS[activeIndex];
 
     return (
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 shadow-sm">
-            <div className="relative h-[220px] sm:h-[300px] lg:h-[380px]">
-                <img src={banner.image} alt={banner.title} className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/30 to-transparent" />
-                <div className="absolute left-5 top-1/2 max-w-xl -translate-y-1/2 text-white sm:left-8">
-                    <p className="mb-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider">Bộ sưu tập nổi bật</p>
-                    <h1 className="text-3xl font-black leading-tight sm:text-5xl">{banner.title}</h1>
-                    <p className="mt-3 max-w-md text-sm leading-6 text-slate-200">{banner.description}</p>
+        <section className="relative min-h-[calc(100svh-72px)] overflow-hidden bg-zinc-950 text-white">
+            <img src={banner.image} alt={banner.title} className="absolute inset-0 h-full w-full object-cover opacity-80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-zinc-950/44 to-zinc-950/10" />
+            <div className="relative mx-auto flex min-h-[calc(100svh-72px)] max-w-[1440px] flex-col justify-end px-4 pb-12 pt-24 sm:px-6 lg:px-10 lg:pb-16">
+                <div className="max-w-3xl">
+                    <p className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-[#D6B36A]">{banner.eyebrow}</p>
+                    <h1 className="text-4xl font-semibold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">{banner.title}</h1>
+                    <p className="mt-5 max-w-xl text-sm leading-7 text-white/78 sm:text-base">{banner.description}</p>
+                    <div className="mt-8 flex flex-wrap items-center gap-3">
+                        <a href="#catalog" className="inline-flex h-12 items-center gap-2 bg-white px-5 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-950 transition hover:bg-[#D6B36A]">
+                            Shop now <ShoppingBag size={16} />
+                        </a>
+                        {product && (
+                            <a href={`/product/${product.id}`} className="inline-flex h-12 items-center gap-2 border border-white/45 px-5 text-sm font-semibold uppercase tracking-[0.18em] transition hover:border-white hover:bg-white/10">
+                                Featured piece <ArrowRight size={16} />
+                            </a>
+                        )}
+                    </div>
+                </div>
+
+                <div className="mt-10 flex items-center justify-between gap-4">
+                    <div className="flex gap-2">
+                        {BANNERS.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => onSelect(index)}
+                                className={`h-0.5 transition-all ${activeIndex === index ? 'w-12 bg-white' : 'w-6 bg-white/35'}`}
+                                aria-label={`Chọn banner ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={onPrev} className="flex h-11 w-11 items-center justify-center border border-white/35 bg-white/10 backdrop-blur transition hover:bg-white hover:text-zinc-950" aria-label="Banner trước">
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button onClick={onNext} className="flex h-11 w-11 items-center justify-center border border-white/35 bg-white/10 backdrop-blur transition hover:bg-white hover:text-zinc-950" aria-label="Banner sau">
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <button onClick={onPrev} className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow hover:bg-white">
-                <ChevronLeft size={20} />
-            </button>
-            <button onClick={onNext} className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow hover:bg-white">
-                <ChevronRight size={20} />
-            </button>
-
-            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-                {BANNERS.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => onSelect(index)}
-                        className={`h-2.5 rounded-full transition-all ${activeIndex === index ? 'w-8 bg-white' : 'w-2.5 bg-white/50'}`}
-                    />
-                ))}
-            </div>
-        </div>
+        </section>
     );
 };
 
 const CategoryBar = ({ categories, selectedCategory, onSelect }: { categories: Category[]; selectedCategory: string; onSelect: (categoryId: string) => void }) => (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-black text-slate-950">Danh mục</h2>
-            <p className="text-xs font-semibold text-slate-400">Cuộn ngang để xem thêm</p>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-            <CategoryButton active={selectedCategory === 'all'} onClick={() => onSelect('all')}>Tất cả</CategoryButton>
-            {categories.map(category => (
-                <CategoryButton key={category.id} active={selectedCategory === String(category.id)} onClick={() => onSelect(String(category.id))}>
-                    {category.name}
-                </CategoryButton>
-            ))}
-        </div>
+    <section className="flex gap-2 overflow-x-auto border-b border-zinc-200 pb-5">
+        <CategoryButton active={selectedCategory === 'all'} onClick={() => onSelect('all')}>Tất cả</CategoryButton>
+        {categories.map(category => (
+            <CategoryButton key={category.id} active={selectedCategory === String(category.id)} onClick={() => onSelect(String(category.id))}>
+                {category.name}
+            </CategoryButton>
+        ))}
     </section>
 );
 
 const CategoryButton = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) => (
     <button
         onClick={onClick}
-        className={`shrink-0 rounded-xl border px-4 py-2 text-sm font-bold transition-colors ${active
-            ? 'border-slate-950 bg-slate-950 text-white'
-            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
+        className={`shrink-0 border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors ${active
+            ? 'border-zinc-950 bg-zinc-950 text-white'
+            : 'border-zinc-300 bg-transparent text-zinc-600 hover:border-zinc-950 hover:text-zinc-950'
             }`}
     >
         {children}
     </button>
 );
 
-const ProductSection = ({
-    title,
-    subtitle,
-    icon: Icon,
-    products,
-    visibleCount,
-    onShowMore,
-    tone,
-    isLoading,
-}: {
-    title: string;
-    subtitle: string;
-    icon: any;
-    products: ProductResponse[];
-    visibleCount: number;
-    onShowMore: () => void;
-    tone: 'flash' | 'default';
-    isLoading: boolean;
-}) => {
-    const visibleProducts = products.slice(0, visibleCount);
-    const hasMore = visibleCount < products.length;
+const EditorialPanel = ({ title, text, products, compact = false }: { title: string; text: string; products: ProductResponse[]; compact?: boolean }) => (
+    <article className="grid overflow-hidden bg-white md:grid-cols-2">
+        <div className="flex min-h-[260px] flex-col justify-between p-6 sm:p-8">
+            <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A68545]">Editorial</p>
+                <h2 className={`${compact ? 'text-2xl' : 'text-3xl sm:text-4xl'} mt-3 font-semibold tracking-tight`}>{title}</h2>
+                <p className="mt-4 text-sm leading-6 text-zinc-500">{text}</p>
+            </div>
+            {products[0] && (
+                <a href={`/product/${products[0].id}`} className="mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-950">
+                    Khám phá <ArrowRight size={16} />
+                </a>
+            )}
+        </div>
+        <div className="grid min-h-[260px] grid-cols-2 gap-px bg-zinc-200">
+            {(products.length ? products : [undefined, undefined]).slice(0, 2).map((product, index) => (
+                <a key={product?.id || index} href={product ? `/product/${product.id}` : '#catalog'} className="group relative overflow-hidden bg-zinc-100">
+                    {product?.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.productName} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                    ) : (
+                        <div className="flex h-full items-center justify-center text-zinc-300"><Sparkles size={34} /></div>
+                    )}
+                </a>
+            ))}
+        </div>
+    </article>
+);
+
+const ProductSection = ({ title, subtitle, products, icon: Icon, loading, subtle = false }: { title: string; subtitle: string; products: ProductResponse[]; icon: any; loading: boolean; subtle?: boolean }) => {
+    if (!loading && products.length === 0) return null;
 
     return (
-        <section className={`rounded-2xl border p-4 shadow-sm ${tone === 'flash' ? 'border-red-100 bg-gradient-to-br from-red-50 via-orange-50 to-white' : 'border-slate-200 bg-white'}`}>
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                    <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-white ${tone === 'flash' ? 'bg-red-600' : 'bg-slate-950'}`}>
-                        <Icon size={21} />
+        <section id={title === 'Sale Edit' ? 'catalog' : undefined} className={`mt-10 ${subtle ? 'bg-[#EFE8DB]' : 'bg-white'} p-4 sm:p-6`}>
+            <div className="mb-6 flex items-end justify-between gap-4">
+                <div>
+                    <div className="mb-3 inline-flex h-10 w-10 items-center justify-center bg-zinc-950 text-white">
+                        <Icon size={19} />
                     </div>
-                    <div>
-                        <h2 className="text-xl font-black text-slate-950">{title}</h2>
-                        <p className="text-sm text-slate-500">{subtitle}</p>
-                    </div>
+                    <h2 className="text-2xl font-semibold tracking-tight text-zinc-950">{title}</h2>
+                    <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
                 </div>
-                <span className="text-xs font-bold text-slate-400">{products.length} sản phẩm phù hợp</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">{products.length} items</span>
             </div>
-
-            {isLoading ? (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    {Array.from({ length: PAGE_STEP }).map((_, index) => <div key={index} className="h-[390px] animate-pulse rounded-2xl bg-white" />)}
-                </div>
-            ) : visibleProducts.length > 0 ? (
-                <>
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        {visibleProducts.map(product => <ProductCard key={product.id} product={product} />)}
-                    </div>
-                    {hasMore && (
-                        <div className="mt-5 flex justify-center">
-                            <button onClick={onShowMore} className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50">
-                                Xem thêm 8 sản phẩm
-                            </button>
-                        </div>
-                    )}
-                </>
+            {loading ? (
+                <ProductSkeleton />
             ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 py-10 text-center text-sm text-slate-400">Chưa có sản phẩm phù hợp.</div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-4">
+                    {products.map(product => <ProductCard key={product.id} product={product} />)}
+                </div>
             )}
         </section>
     );
 };
+
+const ProductSkeleton = () => (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-4">
+        {Array.from({ length: PAGE_STEP }).map((_, index) => (
+            <div key={index} className="h-[320px] animate-pulse bg-white/70" />
+        ))}
+    </div>
+);
 
 const FilterPanel = ({
     brands,
@@ -456,13 +468,13 @@ const FilterPanel = ({
     onPriceRangeChange: (value: string) => void;
     onReset: () => void;
 }) => (
-    <div className="space-y-6">
+    <div className="space-y-7">
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-                <Filter size={17} className="text-slate-500" />
-                <h3 className="font-black text-slate-950">Bộ lọc</h3>
+                <Filter size={17} className="text-zinc-500" />
+                <h3 className="font-semibold text-zinc-950">Tinh chỉnh sản phẩm</h3>
             </div>
-            <button onClick={onReset} className="text-xs font-bold text-blue-600">Đặt lại</button>
+            <button onClick={onReset} className="text-xs font-semibold uppercase tracking-[0.18em] text-[#A68545]">Đặt lại</button>
         </div>
         <FilterSection title="Thương hiệu">
             <FilterButton active={selectedBrand === 'all'} onClick={() => onBrandChange('all')}>Tất cả</FilterButton>
@@ -476,24 +488,22 @@ const FilterPanel = ({
 
 const FilterSection = ({ title, children }: { title: string; children: ReactNode }) => (
     <div>
-        <h4 className="mb-2 text-xs font-black uppercase tracking-wider text-slate-400">{title}</h4>
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">{title}</h4>
         <div className="flex flex-wrap gap-2">{children}</div>
     </div>
 );
 
 const FilterButton = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) => (
-    <button onClick={onClick} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${active ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'}`}>
+    <button onClick={onClick} className={`border px-3 py-2 text-xs font-semibold transition-colors ${active ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-300 bg-white text-zinc-600 hover:border-zinc-950 hover:text-zinc-950'}`}>
         {children}
     </button>
 );
 
 const TrustItem = ({ icon: Icon, title, text }: { icon: any; title: string; text: string }) => (
-    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4">
-        <div className="rounded-xl bg-blue-50 p-2 text-blue-600"><Icon size={20} /></div>
-        <div>
-            <p className="text-sm font-black text-slate-950">{title}</p>
-            <p className="mt-1 text-sm text-slate-500">{text}</p>
-        </div>
+    <div className="border-b border-zinc-200 py-5 md:border-b-0 md:border-r md:px-6 md:last:border-r-0">
+        <div className="mb-4 text-[#A68545]"><Icon size={22} /></div>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-950">{title}</p>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">{text}</p>
     </div>
 );
 

@@ -18,6 +18,6 @@ ReactDOM.createRoot(
 ).render(
   <QueryClientProvider client={queryClient}>
     <RouterProvider router={router} />
-    <Toaster position="top-right" richColors />
+    <Toaster position="top-center" closeButton toastOptions={{ duration: 2600 }} />
   </QueryClientProvider>
 );

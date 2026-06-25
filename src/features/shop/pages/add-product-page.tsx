@@ -88,6 +88,12 @@ const AddProductPage = () => {
 
     const onSubmit = async (data: any) => {
         if (!shop) return;
+        const normalizedVariants = (data.variants || []).map((variant: any) => ({
+            ...variant,
+            size: String(variant.size || '').trim(),
+            color: String(variant.color || '').trim(),
+        }));
+
         if (uniqueColors.length > 0 && uniqueColors.every(c => c !== '') && uniqueColors.some(color => !colorImages[color])) {
             toast.error('Vui lòng upload ảnh cho tất cả các màu sắc đã chọn');
             return;
@@ -106,8 +112,8 @@ const AddProductPage = () => {
         try {
             // 1. Tạo sản phẩm chính
             const productPayload = {
-                productName: data.productName,
-                productDetail: data.productDetail,
+                productName: String(data.productName || '').trim(),
+                productDetail: String(data.productDetail || '').trim(),
                 price: data.price,
                 shopId: shop.id,
                 categoryIds,
@@ -117,7 +123,7 @@ const AddProductPage = () => {
             const newProduct = await createProduct(productPayload);
 
             // 2. Tạo các biến thể cho sản phẩm đó
-            const variantPromises = data.variants.map((v: any) =>
+            const variantPromises = normalizedVariants.map((v: any) =>
                 api.post('/api/product-variants', {
                     productId: newProduct.id, // productId là số
                     size: v.size,

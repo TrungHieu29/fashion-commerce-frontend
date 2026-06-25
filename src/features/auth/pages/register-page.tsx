@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, IdCard, Lock, Mail, Phone, Sparkles, UserRound } from 'lucide-react';
-import { toast } from 'sonner';
 import { registerApi } from '../api/auth.api';
 import { registerSchema, type RegisterSchemaType } from '../schemas/auth.schema';
 
@@ -38,7 +37,6 @@ const RegisterPage = () => {
                 phone: data.phone?.trim() || undefined,
                 avatar: null,
             });
-            toast.success('OTP đã được gửi tới email.');
             navigate(`/verify-account?email=${encodeURIComponent(email)}`);
         } catch (error: any) {
             const message = getRegisterErrorMessage(error);
@@ -55,7 +53,9 @@ const RegisterPage = () => {
                 setError('fullName', { type: 'server', message: message.text });
             }
 
-            toast.error(message.text);
+            if (!message.field) {
+                setError('email', { type: 'server', message: message.text });
+            }
         }
     };
 

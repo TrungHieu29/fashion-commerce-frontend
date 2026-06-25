@@ -136,6 +136,12 @@ const EditProductPage = () => {
 
     const onSubmit = async (data: ProductFormValues) => {
         if (!shop || !id) return;
+        const normalizedVariants = (data.variants || []).map((variant: FormProductVariant) => ({
+            ...variant,
+            size: String(variant.size || '').trim(),
+            color: String(variant.color || '').trim(),
+            stock: Number(variant.stock),
+        }));
         const categoryIds = Array.isArray(data.categoryIds)
             ? data.categoryIds.map(Number).filter(Number.isFinite)
             : [];
@@ -149,6 +155,8 @@ const EditProductPage = () => {
         try {
             await updateProduct(Number(id), {
                 ...data,
+                productName: String(data.productName || '').trim(),
+                productDetail: String(data.productDetail || '').trim(),
                 shopId: shop.id, // Đảm bảo shopId được gửi
                 originalPrice: Number(data.price), // Gửi originalPrice từ form
                 categoryIds,
@@ -160,7 +168,7 @@ const EditProductPage = () => {
             const currentVariantsList = Array.isArray(variants) ? variants : (variants?.content || []);
 
             // Lấy danh sách ID từ form (đã được định nghĩa kiểu qua ProductFormValues)
-            const submittedVariantIds: number[] = (data.variants || []) // data.variants đã là FormProductVariant[]
+            const submittedVariantIds: number[] = normalizedVariants
                 .map(v => v.id ? Number(v.id) : null) // v.id là number | undefined
                 .filter((id): id is number => id !== null);
 
@@ -172,7 +180,7 @@ const EditProductPage = () => {
                 .filter(oid => !submittedVariantIds.includes(oid))
                 .map(oid => api.delete(`/api/product-variants/${oid}`));
 
-            const upsertPromises = data.variants.map((v: FormProductVariant) => {
+            const upsertPromises = normalizedVariants.map((v: FormProductVariant) => {
                 const payload = { productId: Number(id), size: v.size, color: v.color, stock: Number(v.stock) };
                 return v.id ? api.put(`/api/product-variants/${v.id}`, payload) : api.post('/api/product-variants', payload);
             });
@@ -180,7 +188,7 @@ const EditProductPage = () => {
             // Xử lý upload ảnh mới và xóa ảnh cũ nếu ghi đè
             const imageUploadPromises = Object.entries(newColorImages).map(async ([color, file]) => {
                 // Tìm xem màu này đã có ảnh chưa
-                const existingImg = currentImages?.find(img => img.color === color);
+                const existingImg = currentImages?.find(img => img.color?.trim().toLowerCase() === color.trim().toLowerCase());
                 if (existingImg) {
                     // Xóa ảnh cũ trước khi upload mới
                     await api.delete(`/api/product-images/${existingImg.id}`);
@@ -293,7 +301,7 @@ const EditProductPage = () => {
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         {uniqueColors.map(color => {
-                            const existingImage = currentImages?.find(img => img.color?.toLowerCase() === color.toLowerCase());
+                            const existingImage = currentImages?.find(img => img.color?.trim().toLowerCase() === color.trim().toLowerCase());
                             const newFile = newColorImages[color];
 
                             return (

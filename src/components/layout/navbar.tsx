@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { Menu, ShoppingBag, ShoppingCart, UserRound, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyShop } from '@/features/shop/hooks/use-shop';
 import { useCart } from '@/features/cart/hooks/use-cart';
@@ -9,93 +10,186 @@ export const Navbar = () => {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const user = useAuthStore((state) => state.user);
     const isAdmin = user?.roles?.some((role) => role === 'ADMIN' || role === 'ROLE_ADMIN') || false;
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const { data: cart } = useCart();
     const itemCount = cart?.cartItems?.length || 0;
     const { data: myShop, isLoading: isLoadingMyShop } = useMyShop();
 
+    const handleLogout = () => {
+        logout();
+        setShowLogoutConfirm(false);
+        setIsMenuOpen(false);
+    };
+
     return (
-        <nav className="sticky top-0 z-50 flex h-[72px] items-center border-b border-[#E5E7EB] bg-white/80 px-6 backdrop-blur-md md:px-12">
-            <div className="container mx-auto flex max-w-[1280px] items-center justify-between">
-                <Link to="/" className="text-[20px] font-extrabold tracking-tight text-[#0F0F0F]">
-                    FASHION<span className="text-blue-600">.</span>
-                </Link>
-
-                <div className="hidden items-center gap-8 text-[15px] font-medium text-[#6B7280] md:flex">
-                    <Link to="/" className="transition-colors hover:text-[#111111]">Trang chủ</Link>
-                    <Link to="/shops" className="transition-colors hover:text-[#111111]">Cửa hàng</Link>
-                    {isAuthenticated && isAdmin && (
-                        <Link to="/admin" className="font-bold text-blue-600 transition-colors hover:text-blue-700">Quản trị</Link>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-6">
-                    {isAuthenticated && (
-                        <div className="hidden items-center md:flex">
-                            {isLoadingMyShop ? (
-                                <span className="text-[14px] text-gray-300">Đang kiểm tra...</span>
-                            ) : myShop ? (
-                                <ShopEntry status={myShop.status} />
-                            ) : (
-                                <Link to="/register-seller" className="text-[14px] font-bold text-[#111111] hover:text-blue-600">Bán hàng</Link>
-                            )}
-                        </div>
-                    )}
-
-                    <Link to="/cart" className="relative text-[#6B7280] transition-all hover:text-[#111111]">
-                        <ShoppingCart size={22} strokeWidth={1.5} />
-                        {isAuthenticated && itemCount > 0 && (
-                            <span className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 border-white bg-[#111111] text-[10px] font-bold text-white">
-                                {itemCount}
-                            </span>
-                        )}
+        <>
+            <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/88 backdrop-blur-xl">
+                <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
+                    <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-[0.18em] text-zinc-950">
+                        <ShoppingBag size={21} strokeWidth={1.7} />
+                        MAISON
                     </Link>
 
-                    {isAuthenticated ? (
-                        <div className="flex items-center gap-4 border-l border-[#E5E7EB] pl-6">
-                            <Link to="/profile" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F5F5F5] text-[14px] font-bold text-[#111111] transition-all hover:bg-[#E5E7EB]">
-                                P
+                    <div className="hidden items-center gap-9 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-500 lg:flex">
+                        <Link to="/" className="transition-colors hover:text-zinc-950">Home</Link>
+                        <Link to="/" className="transition-colors hover:text-zinc-950">Shop</Link>
+                        <Link to="/" className="transition-colors hover:text-zinc-950">Collections</Link>
+                        <Link to="/" className="transition-colors hover:text-zinc-950">Sale</Link>
+                        <Link to="/shops" className="transition-colors hover:text-zinc-950">Lookbook</Link>
+                        {isAuthenticated && isAdmin && (
+                            <Link to="/admin" className="text-[#A68545] transition-colors hover:text-zinc-950">Admin</Link>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:gap-5">
+                        {isAuthenticated && (
+                            <div className="hidden items-center lg:flex">
+                                {isLoadingMyShop ? (
+                                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-300">Đang kiểm tra</span>
+                                ) : myShop ? (
+                                    <ShopEntry status={myShop.status} />
+                                ) : (
+                                    <Link to="/register-seller" className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-950 hover:text-[#A68545]">Bán hàng</Link>
+                                )}
+                            </div>
+                        )}
+
+                        <Link to="/cart" className="relative flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-zinc-950" aria-label="Giỏ hàng">
+                            <ShoppingCart size={21} strokeWidth={1.6} />
+                            {isAuthenticated && itemCount > 0 && (
+                                <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-bold text-white">
+                                    {itemCount}
+                                </span>
+                            )}
+                        </Link>
+
+                        {isAuthenticated ? (
+                            <div className="hidden items-center gap-3 sm:flex">
+                                <Link to="/profile" className="flex h-10 w-10 items-center justify-center border border-zinc-200 text-zinc-950 transition hover:border-zinc-950" aria-label="Tài khoản">
+                                    <UserRound size={18} />
+                                </Link>
+                                <button onClick={() => setShowLogoutConfirm(true)} className="h-10 border border-zinc-950 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-950 transition hover:bg-zinc-950 hover:text-white">
+                                    Đăng xuất
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="hidden items-center gap-3 sm:flex">
+                                <Link to="/register" className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-zinc-950">
+                                    Đăng ký
+                                </Link>
+                                <Link to="/login" className="h-10 bg-zinc-950 px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[#A68545]">
+                                    Đăng nhập
+                                </Link>
+                            </div>
+                        )}
+
+                        <button onClick={() => setIsMenuOpen(true)} className="flex h-10 w-10 items-center justify-center border border-zinc-200 text-zinc-950 lg:hidden" aria-label="Mở menu">
+                            <Menu size={21} />
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {isMenuOpen && (
+                <div className="fixed inset-0 z-[70] bg-zinc-950/45 backdrop-blur-sm lg:hidden">
+                    <div className="ml-auto flex h-full w-full max-w-sm flex-col bg-white p-5 shadow-2xl">
+                        <div className="flex items-center justify-between">
+                            <Link to="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 text-lg font-semibold tracking-[0.18em] text-zinc-950">
+                                <ShoppingBag size={21} />
+                                MAISON
                             </Link>
-                            <button onClick={logout} className="text-[14px] font-bold text-[#EF4444] hover:opacity-70">
+                            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-zinc-100" aria-label="Đóng menu">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="mt-10 flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Home</MobileLink>
+                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Shop</MobileLink>
+                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Collections</MobileLink>
+                            <MobileLink to="/" onClick={() => setIsMenuOpen(false)}>Sale</MobileLink>
+                            <MobileLink to="/shops" onClick={() => setIsMenuOpen(false)}>Lookbook</MobileLink>
+                            {isAuthenticated && isAdmin && <MobileLink to="/admin" onClick={() => setIsMenuOpen(false)}>Admin</MobileLink>}
+                            {isAuthenticated && (myShop?.status === 'ACTIVE' ? (
+                                <MobileLink to="/my-shop" onClick={() => setIsMenuOpen(false)}>Kênh người bán</MobileLink>
+                            ) : (
+                                <MobileLink to="/register-seller" onClick={() => setIsMenuOpen(false)}>Bán hàng</MobileLink>
+                            ))}
+                        </div>
+
+                        <div className="mt-auto grid gap-3">
+                            {isAuthenticated ? (
+                                <>
+                                    <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="flex h-12 items-center justify-center border border-zinc-300 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-950">
+                                        Tài khoản
+                                    </Link>
+                                    <button onClick={() => setShowLogoutConfirm(true)} className="h-12 bg-zinc-950 text-sm font-semibold uppercase tracking-[0.16em] text-white">
+                                        Đăng xuất
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex h-12 items-center justify-center bg-zinc-950 text-sm font-semibold uppercase tracking-[0.16em] text-white">
+                                        Đăng nhập
+                                    </Link>
+                                    <Link to="/register" onClick={() => setIsMenuOpen(false)} className="flex h-12 items-center justify-center border border-zinc-300 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-950">
+                                        Đăng ký
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showLogoutConfirm && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-sm bg-white p-6 shadow-2xl">
+                        <h2 className="text-xl font-semibold text-zinc-950">Đăng xuất tài khoản?</h2>
+                        <p className="mt-3 text-sm leading-6 text-zinc-500">Bạn có chắc muốn đăng xuất khỏi tài khoản hiện tại không?</p>
+                        <div className="mt-6 grid grid-cols-2 gap-3">
+                            <button onClick={() => setShowLogoutConfirm(false)} className="h-11 border border-zinc-300 text-sm font-semibold text-zinc-700 transition hover:border-zinc-950">
+                                Hủy
+                            </button>
+                            <button onClick={handleLogout} className="h-11 bg-zinc-950 text-sm font-semibold text-white transition hover:bg-[#A68545]">
                                 Đăng xuất
                             </button>
                         </div>
-                    ) : (
-                        <div className="flex items-center gap-4">
-                            <Link to="/register" className="text-[14px] font-medium text-[#6B7280] transition-colors hover:text-[#111111]">
-                                Đăng ký
-                            </Link>
-                            <Link to="/login" className="rounded-xl bg-[#111111] px-6 py-2.5 text-[14px] font-bold text-white transition-all hover:bg-[#222222] active:scale-95">
-                                Đăng nhập
-                            </Link>
-                        </div>
-                    )}
+                    </div>
                 </div>
-            </div>
-        </nav>
+            )}
+        </>
     );
 };
 
+const MobileLink = ({ to, onClick, children }: { to: string; onClick: () => void; children: React.ReactNode }) => (
+    <Link to={to} onClick={onClick} className="border-b border-zinc-100 pb-4 transition hover:text-zinc-950">
+        {children}
+    </Link>
+);
+
 const ShopEntry = ({ status }: { status?: string }) => {
     if (status === 'ACTIVE') {
-        return <Link to="/my-shop" className="text-[14px] font-bold text-blue-600 hover:opacity-80">Kênh người bán</Link>;
+        return <Link to="/my-shop" className="text-xs font-semibold uppercase tracking-[0.16em] text-[#A68545] hover:text-zinc-950">Kênh người bán</Link>;
     }
 
     if (status === 'PENDING') {
-        return <span className="rounded-full bg-amber-50 px-3 py-1 text-[12px] font-black text-amber-700">Shop chờ duyệt</span>;
+        return <span className="bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700">Shop chờ duyệt</span>;
     }
 
     if (status === 'REJECTED') {
-        return <Link to="/my-shop" className="text-[12px] font-black text-red-600 hover:underline">Đăng ký shop bị từ chối</Link>;
+        return <Link to="/my-shop" className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-600 hover:underline">Shop bị từ chối</Link>;
     }
 
     if (status === 'INACTIVE') {
-        return <Link to="/my-shop" className="text-[12px] font-black text-slate-500 hover:underline">Shop tạm ngưng</Link>;
+        return <Link to="/my-shop" className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 hover:underline">Shop tạm ngưng</Link>;
     }
 
     if (status === 'BANNED') {
-        return <Link to="/my-shop" className="text-[12px] font-black text-red-600 hover:underline">Shop bị khóa</Link>;
+        return <Link to="/my-shop" className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-600 hover:underline">Shop bị khóa</Link>;
     }
 
-    return <Link to="/register-seller" className="text-[14px] font-bold text-[#111111] hover:text-blue-600">Bán hàng</Link>;
+    return <Link to="/register-seller" className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-950 hover:text-[#A68545]">Bán hàng</Link>;
 };

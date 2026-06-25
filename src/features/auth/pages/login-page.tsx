@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AlertCircle, ShieldCheck, ShoppingBag } from 'lucide-react';
-import { toast } from 'sonner';
+import { CheckCircle2, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { LoginForm } from '../components/login-form';
 
 const LoginPage = () => {
@@ -12,16 +11,10 @@ const LoginPage = () => {
         '';
 
     useEffect(() => {
-        const storedMessage = sessionStorage.getItem('auth-message');
-        if (storedMessage) {
+        if (sessionStorage.getItem('auth-message')) {
             sessionStorage.removeItem('auth-message');
         }
-
-        const message = storedMessage || (location.state as { authMessage?: string } | null)?.authMessage;
-        if (message) {
-            toast.error(message);
-        }
-    }, [location.state]);
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#F5F7FA] px-4 py-8">
@@ -77,8 +70,8 @@ const LoginPage = () => {
                         </div>
 
                         {message && (
-                            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-                                <AlertCircle className="mt-0.5 shrink-0" size={18} />
+                            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                                <CheckCircle2 className="mt-0.5 shrink-0" size={18} />
                                 <span>{message}</span>
                             </div>
                         )}

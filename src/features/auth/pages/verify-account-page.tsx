@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type FormEve
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { AlertCircle, CheckCircle2, MailCheck, RotateCcw } from 'lucide-react';
-import { toast } from 'sonner';
 import { resendOtpApi, verifyOtpApi } from '../api/auth.api';
 
 const OTP_LENGTH = 6;
@@ -34,7 +33,6 @@ const VerifyAccountPage = () => {
     const verifyMutation = useMutation({
         mutationFn: verifyOtpApi,
         onSuccess: () => {
-            toast.success('Tài khoản của bạn đã được kích hoạt thành công.');
             navigate('/login', {
                 state: { authMessage: 'Tài khoản đã được kích hoạt. Bạn có thể đăng nhập ngay.' },
             });
@@ -47,7 +45,6 @@ const VerifyAccountPage = () => {
             } else {
                 setOtpError(mappedError.text);
             }
-            toast.error(mappedError.text);
         },
     });
 
@@ -55,12 +52,10 @@ const VerifyAccountPage = () => {
         mutationFn: resendOtpApi,
         onSuccess: () => {
             setResendCooldown(60);
-            toast.success('Mã OTP mới đã được gửi.');
         },
         onError: (error: any) => {
             const mappedError = getResendErrorMessage(error);
             setEmailError(mappedError);
-            toast.error(mappedError);
         },
     });
 

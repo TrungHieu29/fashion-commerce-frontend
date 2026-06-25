@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Package, Star } from 'lucide-react';
+import { Eye, Heart, Package, ShoppingBag, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
@@ -35,57 +35,69 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         : 0;
 
     return (
-        <div className="relative flex min-h-[340px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-            {discountPercent > 0 && (
-                <span className="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white shadow-sm">
-                    -{discountPercent}%
-                </span>
-            )}
-
-            <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-slate-100">
-                {displayImage ? (
-                    <img src={displayImage} alt={product.productName} className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
-                ) : (
-                    <div className="flex h-full w-full items-center justify-center text-slate-300">
-                        <Package size={46} strokeWidth={1.4} />
-                    </div>
+        <article className="group min-w-0 bg-transparent">
+            <div className="relative aspect-[3/4] overflow-hidden bg-zinc-100">
+                {discountPercent > 0 && (
+                    <span className="absolute left-3 top-3 z-10 bg-zinc-950 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white">
+                        -{discountPercent}%
+                    </span>
                 )}
-            </Link>
 
-            <div className="flex flex-1 flex-col p-4">
-                <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {categoryLabel && <span className="truncate">{categoryLabel}</span>}
-                    {product.brandName && <span className="truncate rounded-full bg-slate-100 px-2 py-0.5 text-slate-500">{product.brandName}</span>}
+                <Link to={`/product/${product.id}`} className="block h-full w-full">
+                    {displayImage ? (
+                        <img src={displayImage} alt={product.productName} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center text-zinc-300">
+                            <Package size={46} strokeWidth={1.4} />
+                        </div>
+                    )}
+                </Link>
+
+                <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
+                    <button className="flex h-9 w-9 items-center justify-center bg-white/90 text-zinc-950 shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white" aria-label="Thêm vào yêu thích">
+                        <Heart size={17} />
+                    </button>
+                    <Link to={`/product/${product.id}`} className="flex h-9 w-9 items-center justify-center bg-white/90 text-zinc-950 shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white" aria-label="Xem nhanh">
+                        <Eye size={17} />
+                    </Link>
+                </div>
+
+                <Link
+                    to={`/product/${product.id}`}
+                    className="absolute inset-x-3 bottom-3 hidden h-10 items-center justify-center gap-2 bg-white text-xs font-semibold uppercase tracking-[0.16em] text-zinc-950 shadow-sm transition hover:bg-zinc-950 hover:text-white sm:flex sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+                >
+                    <ShoppingBag size={15} />
+                    Quick view
+                </Link>
+            </div>
+
+            <div className="min-w-0 pt-3">
+                <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+                    <p className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                        {categoryLabel || product.brandName || 'Fashion'}
+                    </p>
+                    <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#A68545]">
+                        {rating.toFixed(1)} <Star size={12} fill="currentColor" />
+                    </span>
                 </div>
 
                 <Link to={`/product/${product.id}`}>
-                    <h3 className="line-clamp-2 text-base font-black leading-snug text-slate-950 transition-colors hover:text-blue-600">
+                    <h3 className="line-clamp-2 min-h-[40px] text-sm font-semibold leading-5 text-zinc-950 transition-colors hover:text-[#A68545] sm:text-[15px]">
                         {product.productName}
                     </h3>
                 </Link>
 
-                <div className="mt-auto flex items-end justify-between gap-3 pt-4">
-                    <div className="min-w-0">
-                        {discountAmount > 0 && originalPrice > finalPrice && (
-                            <p className="text-xs font-semibold text-slate-400 line-through">
-                                {originalPrice.toLocaleString('vi-VN')}đ
-                            </p>
-                        )}
-                        <p className="text-xl font-black text-blue-600">
-                            {finalPrice.toLocaleString('vi-VN')}đ
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <p className="text-sm font-semibold text-zinc-950 sm:text-base">
+                        {finalPrice.toLocaleString('vi-VN')}đ
+                    </p>
+                    {discountAmount > 0 && originalPrice > finalPrice && (
+                        <p className="text-xs font-medium text-zinc-400 line-through">
+                            {originalPrice.toLocaleString('vi-VN')}đ
                         </p>
-                    </div>
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-black text-amber-600">
-                        {rating.toFixed(1)} <Star size={13} fill="currentColor" />
-                    </span>
+                    )}
                 </div>
-
-                <Link to={`/product/${product.id}`} className="mt-4">
-                    <button className="h-10 w-full rounded-xl bg-slate-950 text-sm font-bold text-white transition-colors hover:bg-blue-600">
-                        Xem chi tiết
-                    </button>
-                </Link>
             </div>
-        </div>
+        </article>
     );
 };
