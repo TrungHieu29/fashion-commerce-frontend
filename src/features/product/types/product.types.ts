@@ -72,3 +72,5 @@ export const productMatchesCategory = (product: Pick<ProductResponse, 'categoryI
     if (categoryId === 'all') return true;
     return getProductCategoryIds(product).some((id) => String(id) === categoryId);
 };
+
+export const isActiveProduct = (product: Pick<ProductResponse, 'status'>) => product.status === 'ACTIVE';

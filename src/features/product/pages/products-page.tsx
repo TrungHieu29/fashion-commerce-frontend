@@ -22,7 +22,7 @@ import image3 from '@/assets/images/image3.png';
 import { useProducts } from '../hooks/use-products';
 import { ProductCard } from '../components/product-card';
 import type { ProductResponse } from '../types/product.types';
-import { getProductCategoryLabel, productMatchesCategory } from '../types/product.types';
+import { getProductCategoryLabel, isActiveProduct, productMatchesCategory } from '../types/product.types';
 
 type Category = { id: number; name: string };
 type Brand = { id: number; name: string };
@@ -101,7 +101,7 @@ const ProductsPage = () => {
         setVisibleCount(12);
     }, [searchTerm, selectedCategory, selectedBrand, selectedPriceRange, sortBy]);
 
-    const allProducts = productPage?.content || [];
+    const allProducts = (productPage?.content || []).filter(isActiveProduct);
 
     const filteredProducts = useMemo(() => {
         const normalizedSearch = searchTerm.trim().toLowerCase();

@@ -18,7 +18,7 @@ import { useAddToCart } from '@/features/cart/hooks/use-cart';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import type { ProductImageResponse } from '../types/variant.types';
-import { getProductCategoryLabel } from '@/features/product/types/product.types';
+import { getProductCategoryLabel, isActiveProduct } from '@/features/product/types/product.types';
 
 // 2. Import useChatStore để điều khiển đóng/mở Chat Box
 import { useChatStore } from '@/stores/use.chat.store';
@@ -147,7 +147,7 @@ const ProductDetailPage = () => {
         return <div className="flex h-96 items-center justify-center">Đang tải...</div>;
     }
 
-    if (isError || !product) {
+    if (isError || !product || !isActiveProduct(product)) {
         return <div className="py-20 text-center">Không tìm thấy sản phẩm.</div>;
     }
 

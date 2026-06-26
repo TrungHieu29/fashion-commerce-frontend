@@ -80,11 +80,11 @@ export const Navbar = () => {
                         {isAuthenticated && <NotificationBell />}
 
                         {isAuthenticated && (
-                            <Link to="/wishlist" className="flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-red-500" aria-label="Sản phẩm yêu thích">
-                                <span className={`relative flex h-10 w-10 items-center justify-center ${wishlistPulse ? 'animate-bounce text-red-500' : ''}`}>
+                            <Link to="/wishlist" className="flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-zinc-950" aria-label="Sản phẩm yêu thích">
+                                <span className={`relative flex h-10 w-10 items-center justify-center ${wishlistPulse ? 'animate-bounce text-[#A68545]' : wishlistCount > 0 ? 'text-zinc-950' : ''}`}>
                                     <Heart size={21} strokeWidth={1.6} fill={wishlistCount > 0 ? 'currentColor' : 'none'} />
                                     {wishlistCount > 0 && (
-                                        <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                        <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-bold text-white">
                                             {wishlistCount}
                                         </span>
                                     )}

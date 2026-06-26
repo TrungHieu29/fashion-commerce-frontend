@@ -48,7 +48,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     </span>
                 )}
                 {isWishlisted && (
-                    <span className={`absolute left-3 z-10 bg-red-500 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm ${discountPercent > 0 ? 'top-11' : 'top-3'}`}>
+                    <span className={`absolute left-3 z-10 bg-zinc-950 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm ${discountPercent > 0 ? 'top-11' : 'top-3'}`}>
                         Đã lưu
                     </span>
                 )}
@@ -71,7 +71,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                             if (!isAuthenticated || toggleWishlist.isPending) return;
                             toggleWishlist.mutate();
                         }}
-                        className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white ${isWishlisted ? 'bg-red-500 text-white ring-4 ring-red-100' : 'bg-white/90 text-zinc-950'}`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white ${isWishlisted ? 'bg-zinc-950 text-white ring-4 ring-[#A68545]/20' : 'bg-white/90 text-zinc-950'}`}
                         aria-label={isWishlisted ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
                         title={isAuthenticated ? undefined : 'Đăng nhập để thêm vào yêu thích'}
                     >

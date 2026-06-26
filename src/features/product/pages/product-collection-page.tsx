@@ -6,7 +6,7 @@ import { api } from '@/lib/axios';
 import { ProductCard } from '../components/product-card';
 import { useProducts } from '../hooks/use-products';
 import type { ProductResponse } from '../types/product.types';
-import { getProductCategoryLabel, productMatchesCategory } from '../types/product.types';
+import { getProductCategoryLabel, isActiveProduct, productMatchesCategory } from '../types/product.types';
 
 type Category = { id: number; name: string };
 type Brand = { id: number; name: string };
@@ -49,7 +49,7 @@ const ProductCollectionPage = () => {
         queryFn: () => api.get('/api/product-brands').then(res => res.data),
     });
 
-    const products = productPage?.content || [];
+    const products = (productPage?.content || []).filter(isActiveProduct);
     const collectionProducts = useMemo(() => {
         const priceRange = PRICE_RANGES.find(item => item.id === selectedPriceRange) || PRICE_RANGES[0];
         const keyword = searchTerm.trim().toLowerCase();

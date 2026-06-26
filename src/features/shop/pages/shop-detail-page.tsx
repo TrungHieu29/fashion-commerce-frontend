@@ -5,7 +5,7 @@ import { ChevronLeft, Mail, MapPin, Phone, Search, Store, UserRound } from 'luci
 import { api } from '@/lib/axios';
 import { ProductCard } from '@/features/product/components/product-card';
 import type { ProductResponse } from '@/features/product/types/product.types';
-import { getProductCategoryLabel } from '@/features/product/types/product.types';
+import { getProductCategoryLabel, isActiveProduct } from '@/features/product/types/product.types';
 import { useShopById } from '../hooks/use-shop';
 
 const ShopDetailPage = () => {
@@ -26,7 +26,7 @@ const ShopDetailPage = () => {
         enabled: !!shopId,
     });
 
-    const products = productPage?.content || [];
+    const products = (productPage?.content || []).filter(isActiveProduct);
     const filteredProducts = useMemo(() => {
         const keyword = searchTerm.trim().toLowerCase();
 
@@ -78,7 +78,7 @@ const ShopDetailPage = () => {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3 md:w-56">
-                                <ShopStat label="Sản phẩm" value={(productPage?.totalElements || products.length).toLocaleString('vi-VN')} />
+                                <ShopStat label="Sản phẩm" value={products.length.toLocaleString('vi-VN')} />
                                 <ShopStat label="Đánh giá TB" value={getAverageRating(products)} />
                             </div>
                         </div>

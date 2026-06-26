@@ -4,6 +4,7 @@ import { Heart, Loader2, PackageSearch, Trash2 } from 'lucide-react';
 import { api } from '@/lib/axios';
 import { ProductCard } from '@/features/product/components/product-card';
 import type { ProductResponse } from '@/features/product/types/product.types';
+import { isActiveProduct } from '@/features/product/types/product.types';
 import { useAuthStore } from '@/stores/auth.store';
 import { removeWishlistProduct } from '../api/wishlist.api';
 import { useWishlist } from '../hooks/use-wishlist';
@@ -50,7 +51,8 @@ const WishlistPage = () => {
 
     const products = productIds
         .map(productId => productMap.get(productId))
-        .filter((product): product is ProductResponse => Boolean(product));
+        .filter((product): product is ProductResponse => Boolean(product))
+        .filter(isActiveProduct);
 
     const removeMutation = useMutation({
         mutationFn: (productId: number) => removeWishlistProduct(user!.id, productId),
@@ -92,7 +94,7 @@ const WishlistPage = () => {
                                 <button
                                     onClick={() => removeMutation.mutate(product.id)}
                                     disabled={removeMutation.isPending}
-                                    className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center bg-white/90 text-red-500 shadow-sm backdrop-blur transition hover:bg-red-600 hover:text-white disabled:opacity-60"
+                                    className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center bg-white/90 text-zinc-950 shadow-sm backdrop-blur transition hover:bg-zinc-950 hover:text-white disabled:opacity-60"
                                     aria-label="Bỏ khỏi yêu thích"
                                 >
                                     <Trash2 size={16} />
