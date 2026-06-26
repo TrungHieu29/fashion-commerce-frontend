@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Eye, Heart, Package, ShoppingBag, Star } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/axios';
 import { useAuthStore } from '@/stores/auth.store';
 import { useIsWishlisted, useToggleWishlist } from '@/features/wishlist/hooks/use-wishlist';
-import type { ProductImageResponse } from '@/features/product-variant/types/variant.types';
 import type { ProductResponse } from '../types/product.types';
 import { getProductCategoryLabel } from '../types/product.types';
 
@@ -22,18 +19,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     const isWishlisted = useIsWishlisted(product.id);
     const toggleWishlist = useToggleWishlist(product.id);
 
-    const { data: productImages } = useQuery<ProductImageResponse[]>({
-        queryKey: ['product-images', product.id],
-        queryFn: async () => {
-            const res = await api.get(`/api/product-images/product/${product.id}`);
-            return res.data;
-        },
-        staleTime: 1000 * 60 * 5,
-    });
-
-    const displayImage = productImages && productImages.length > 0
-        ? productImages[0].imageUrl
-        : product.imageUrl;
+    const displayImage = product.imageUrl;
 
     const discountPercent = discountAmount > 0 && originalPrice > 0
         ? Math.round((discountAmount / originalPrice) * 100)
