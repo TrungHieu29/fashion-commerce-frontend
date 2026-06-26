@@ -4,6 +4,7 @@ import { Heart, Menu, ShoppingBag, ShoppingCart, UserRound, X } from 'lucide-rea
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyShop } from '@/features/shop/hooks/use-shop';
 import { useCart } from '@/features/cart/hooks/use-cart';
+import { useWishlist } from '@/features/wishlist/hooks/use-wishlist';
 import { NotificationBell } from '@/features/notification/components/notification-bell';
 
 export const Navbar = () => {
@@ -14,9 +15,12 @@ export const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [cartPulse, setCartPulse] = useState(false);
+    const [wishlistPulse, setWishlistPulse] = useState(false);
 
     const { data: cart } = useCart();
     const itemCount = cart?.cartItems?.length || 0;
+    const { data: wishlist = [] } = useWishlist();
+    const wishlistCount = wishlist.length;
     const { data: myShop, isLoading: isLoadingMyShop } = useMyShop();
 
     const handleLogout = () => {
@@ -30,9 +34,17 @@ export const Navbar = () => {
             setCartPulse(true);
             window.setTimeout(() => setCartPulse(false), 900);
         };
+        const handleWishlistUpdated = () => {
+            setWishlistPulse(true);
+            window.setTimeout(() => setWishlistPulse(false), 900);
+        };
 
         window.addEventListener('cart-updated', handleCartUpdated);
-        return () => window.removeEventListener('cart-updated', handleCartUpdated);
+        window.addEventListener('wishlist-updated', handleWishlistUpdated);
+        return () => {
+            window.removeEventListener('cart-updated', handleCartUpdated);
+            window.removeEventListener('wishlist-updated', handleWishlistUpdated);
+        };
     }, []);
 
     return (
@@ -69,7 +81,14 @@ export const Navbar = () => {
 
                         {isAuthenticated && (
                             <Link to="/wishlist" className="flex h-10 w-10 items-center justify-center text-zinc-600 transition-all hover:text-red-500" aria-label="Sản phẩm yêu thích">
-                                <Heart size={21} strokeWidth={1.6} />
+                                <span className={`relative flex h-10 w-10 items-center justify-center ${wishlistPulse ? 'animate-bounce text-red-500' : ''}`}>
+                                    <Heart size={21} strokeWidth={1.6} fill={wishlistCount > 0 ? 'currentColor' : 'none'} />
+                                    {wishlistCount > 0 && (
+                                        <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                            {wishlistCount}
+                                        </span>
+                                    )}
+                                </span>
                             </Link>
                         )}
 

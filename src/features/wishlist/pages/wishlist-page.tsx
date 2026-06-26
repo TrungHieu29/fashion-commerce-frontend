@@ -54,8 +54,11 @@ const WishlistPage = () => {
 
     const removeMutation = useMutation({
         mutationFn: (productId: number) => removeWishlistProduct(user!.id, productId),
-        onSuccess: () => {
+        onSuccess: (_, productId) => {
             queryClient.invalidateQueries({ queryKey: ['wishlist', user?.id] });
+            window.dispatchEvent(new CustomEvent('wishlist-updated', {
+                detail: { action: 'removed', productId },
+            }));
         },
     });
 

@@ -46,6 +46,9 @@ export const useToggleWishlist = (productId: number) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: wishlistKeys.list(user?.id) });
+            window.dispatchEvent(new CustomEvent('wishlist-updated', {
+                detail: { action: isWishlisted ? 'removed' : 'added', productId },
+            }));
         },
         onError: () => undefined,
     });

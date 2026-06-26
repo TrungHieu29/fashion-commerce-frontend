@@ -22,6 +22,7 @@ interface ProductFormValues {
     productName: string;
     productDetail: string;
     price: number;
+    status: string;
     categoryIds: string[];
     brandId: string;
     variants: FormProductVariant[];
@@ -78,6 +79,7 @@ const EditProductPage = () => {
             productName: '',
             productDetail: '',
             price: 0,
+            status: 'ACTIVE',
             categoryIds: [],
             brandId: '',
             variants: []
@@ -122,6 +124,7 @@ const EditProductPage = () => {
                 productName: product.productName,
                 productDetail: product.productDetail,
                 price: product.originalPrice, // Sử dụng originalPrice để điền vào form
+                status: product.status || 'ACTIVE',
                 categoryIds: getProductCategoryIds(product).map(String),
                 brandId: product.brandId.toString(),
                 variants: (variants || []).map((v: ProductVariantResponse) => ({
@@ -161,7 +164,7 @@ const EditProductPage = () => {
                 originalPrice: Number(data.price), // Gửi originalPrice từ form
                 categoryIds,
                 brandId: Number(data.brandId),   // Chuyển đổi sang số
-                status: product.status || 'ACTIVE'
+                status: data.status || 'ACTIVE'
             });
 
             // Xử lý dữ liệu variant cực kỳ an toàn để tránh lỗi filter/includes
@@ -252,6 +255,15 @@ const EditProductPage = () => {
                         <div>
                             <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase tracking-wide">Giá bán (VNĐ)</label>
                             <input type="number" {...register('price', { required: true, valueAsNumber: true })} className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl outline-none font-mono" />
+                        </div>
+                        <div>
+                            <label className="block text-[13px] font-bold text-[#6B7280] mb-2 uppercase tracking-wide">Trạng thái</label>
+                            <select {...register('status', { required: true })} className="w-full px-4 py-3 bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl outline-none focus:border-[#111111]">
+                                <option value="ACTIVE">ACTIVE - Đang bán</option>
+                                <option value="INACTIVE">INACTIVE - Tạm ẩn/ngừng bán</option>
+                                <option value="OUT_OF_STOCK">OUT_OF_STOCK - Hết hàng</option>
+                                <option value="DRAFT">DRAFT - Bản nháp</option>
+                            </select>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>

@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useMyShop } from '../hooks/use-shop';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProductsByShop, deleteProduct } from '@/features/product/api/product.api';
-import { Edit3, Trash2, Package, Search, Filter, Star, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getProductsByShop } from '@/features/product/api/product.api';
+import { Edit3, Package, Search, Star, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { api } from '@/lib/axios';
 import type { ProductResponse } from '@/features/product/types/product.types';
 import { getProductCategoryLabel, productMatchesCategory } from '@/features/product/types/product.types';
@@ -12,7 +11,6 @@ import { getProductCategoryLabel, productMatchesCategory } from '@/features/prod
 const ShopProductsPage = () => {
     const { data: shop } = useMyShop();
     const navigate = useNavigate();
-    const queryClient = useQueryClient();
 
     const [page, setPage] = useState(0);
     const pageSize = 10;
@@ -58,24 +56,6 @@ const ShopProductsPage = () => {
             return matchSearch && matchRating && matchCategory && matchBrand;
         });
     }, [productPage, searchTerm, ratingFilter, categoryFilter, brandFilter]);
-
-    // Mutation xóa sản phẩm
-    const deleteMutation = useMutation({
-        mutationFn: (id: number) => deleteProduct(id),
-        onSuccess: () => {
-            toast.success('Đã xóa sản phẩm thành công');
-            queryClient.invalidateQueries({ queryKey: ['shop-products'] });
-        },
-        onError: (error: any) => {
-            toast.error('Không thể xóa sản phẩm: ' + (error.response?.data?.message || error.message));
-        }
-    });
-
-    const handleDelete = (id: number, name: string) => {
-        if (window.confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}"? Hành động này không thể hoàn tác.`)) {
-            deleteMutation.mutate(id);
-        }
-    };
 
     // Chỉ hiển thị loading screen khi tải lần đầu và chưa có dữ liệu
     if (isLoading && !productPage) return (
@@ -205,20 +185,13 @@ const ShopProductsPage = () => {
                                             >
                                                 <Edit3 size={18} />
                                             </button>
-                                            <button
-                                                onClick={() => handleDelete(product.id, product.productName)}
-                                                className="p-2 text-[#6B7280] hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
-                                                title="Xóa"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-20 text-center text-[#6B7280] italic text-sm">
+                                <td colSpan={6} className="px-6 py-20 text-center text-[#6B7280] italic text-sm">
                                     Hệ thống chưa tìm thấy sản phẩm nào trong cửa hàng của bạn.
                                 </td>
                             </tr>
